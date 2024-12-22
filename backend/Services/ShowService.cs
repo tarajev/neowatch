@@ -1,5 +1,6 @@
 using Neo4j.Driver;
 using Neo4jClient;
+using Neo4jClient.Cypher;
 using NeoWatch.Model;
 
 namespace NeoWatch.Services;
@@ -67,12 +68,11 @@ public class ShowService
             {
                 Show = s.As<Show>(),
                 Genres = g.CollectAs<Genre>(), //collect as vraca vise rezultata
-                Actors = a.CollectAs<Actor>()
+                Actors = a.CollectAs<ActedIn>()
             });
 
         var result = await query.ResultsAsync;
 
-        Console.WriteLine($"Found: {result.First().Actors.First().name}");
         var showData = result.FirstOrDefault();
 
         if (showData != null)
@@ -82,7 +82,7 @@ public class ShowService
             {
                 title = showData.Show.title,
                 genres = showData.Genres.ToList(), //ovo ne vraca jer nije lepo kreirano
-                cast = showData.Actors.ToList(),
+                cast = showData.Actors.ToList(), //izmena sada vraca objekat koji sadrzi glumca i njegovu ulogu 
                 desc = showData.Show.desc,
                 year = showData.Show.year
             };
@@ -93,7 +93,7 @@ public class ShowService
         return null;
     }
 
-    public async Task<Show?> CreateShowAsync(Show show)
+    public async Task<Show?> CreateShowAsync(Show show) //treba izmeniti da prvo ide provera pa create
     {
         using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
         await client.ConnectAsync();
@@ -117,20 +117,24 @@ public class ShowService
                 .WithParam($"gn_{index}", genre.name)
                 .Merge($"(s)-[:IN_GENRE]->({genreKey})");
         }
-        if (show.cast != null)
+        if (show.cast!= null && show.cast.Count >0)
         {
-            foreach (var actor in show.cast)
+            foreach (var castMember in show.cast)
             {
-                var index = show.cast.IndexOf(actor);
+                var index = show.cast.IndexOf(castMember);
                 var actorKey = $"a{index}";
+                var rKey = $"r{index}";
                 query = query
                     .Merge($"({actorKey}:Actor {{name: $an_{index}}})")
-                    .WithParam($"an_{index}", actor.name)
-                    .Merge($"(s)<-[:ACTED_IN]-({actorKey})"); //default relationship je left to right
+                    .WithParam($"an_{index}", castMember.actor!.name)
+                    .Merge($"(s)<-[{rKey}:ACTED_IN]-({actorKey})") //default relationship je left to right
+                    .Set($"{rKey}.role = $role_{index}")
+                    .WithParam($"role_{index}", castMember.role);
             }
         }
 
         var result = await query.Return((s) => s.As<Show>()).ResultsAsync;
+         Console.WriteLine($"NASLOV SERIJE JE:::::::: {result.First().title}");
 
         return result.First();
 
@@ -151,7 +155,7 @@ public class ShowService
         {
             Show = s.As<Show>(),
             Genres = genres.As<List<Genre>>(),
-            Actors = actors.As<List<Actor>>()
+            Actors = actors.As<List<ActedIn>>()
         });
 
         var result = await query.ResultsAsync;
@@ -224,17 +228,17 @@ public class ShowService
             var existingActorsQuery = client.Cypher
                 .Match("(s:Show {title: $title})<-[:ACTED_IN]-(a:Actor)")
                 .WithParam("title", show.title)
-                .Return(a => a.As<Actor>());
+                .Return(a => a.As<ActedIn>());
 
             var existingActors = (await existingActorsQuery.ResultsAsync).ToList();
 
-            var actorsToRemove = existingActors.Where(ea => !show.cast.Any(newActor => newActor.name == ea.name)).ToList();
+            var actorsToRemove = existingActors.Where(ea => !show.cast.Any(newActor => newActor.actor.name == ea.actor.name)).ToList();
             foreach (var actorToRemove in actorsToRemove)
             {
                 query = query
                     .Match("(s:Show {title: $title})<-[:ACTED_IN]-(a:Actor)")
                     .Where("a.name = $actorName")
-                    .WithParam("actorName", actorToRemove.name)
+                    .WithParam("actorName", actorToRemove.actor.name)
                     .Delete("s<-[:ACTED_IN]-a");
             }
 
@@ -244,7 +248,7 @@ public class ShowService
                 var actorKey = $"a{index}";
                 query = query
                     .Merge($"({actorKey}:Actor {{name: $an_{index}}})")
-                    .WithParam($"an_{index}", actor.name)
+                    .WithParam($"an_{index}", actor.actor.name)
                     .Merge($"(s)<-[:ACTED_IN]-({actorKey})");
             }
         }
@@ -265,9 +269,37 @@ public class ShowService
             .DetachDelete("s").Return(s => s.As<Show>());
 
         var result = await query.ResultsAsync; //vrati ce objekat ciji su properti setovani na null 
-        
+
         return result.First();
 
+    }
+    public async Task<Double> UpdateTheRating(string title, double rating)
+    {
+        using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
+        await client.ConnectAsync();
+
+        var q = client.Cypher.Match("(s:Show {title: $title})")
+        .WithParam("title", title)
+        .Return(() => new { numberOfReviews = Return.As<int>("s.numberOfReviews"), previousRating = Return.As<Double>("s.rating") });
+
+        var data = await q.ResultsAsync;
+        var newNumberOfReviews = data.First().numberOfReviews + 1;
+        var newRating = (data.First().previousRating * data.First().numberOfReviews + rating) / newNumberOfReviews;
+
+        var query = client.Cypher
+            .Match("(s:Show {title: $title})")
+            .WithParam("title", title)
+            .Set("s.rating = $rating, s.numberOfReviews = $numberOfReviews")
+            .WithParam("rating", newRating)
+            .WithParam("numberOfReviews", newNumberOfReviews)
+            .Return(() => Return.As<Double>("s.rating"));
+
+        var result = await query.ResultsAsync;
+
+        if (!result.Any())
+            return -1;
+
+        return result.First();
     }
 
 

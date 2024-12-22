@@ -9,5 +9,4 @@ public class User {
     public List<User>? Followers;
     public List<Show>? YetToWatch;
     public List<Watched>? Watched;
-    public List<Review>? Reviews;
 }
