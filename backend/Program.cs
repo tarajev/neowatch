@@ -23,6 +23,7 @@ builder.Services.AddSingleton<IDriver>(provider =>
         AuthTokens.Basic("neo4j", "8vR@JaRJU-SL7Hr")); 
 });
 builder.Services.AddScoped<ShowService>();
+builder.Services.AddScoped<UserService>();
 
 builder.Services.AddCors(options =>
     {

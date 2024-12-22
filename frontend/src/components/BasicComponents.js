@@ -1,0 +1,379 @@
+import React, { useContext, useEffect, useRef, useState } from 'react'
+import { Link as Goto, useLocation } from "react-router-dom";
+import Header from './Header'
+import Footer from './Footer'
+import exitIcon from '../resources/img/exit-icon.png'
+import exitIconBlue from '../resources/img/exit-icon-blue.png'
+import eye from '../resources/img/password-eye.png'
+import eyeSlashed from '../resources/img/password-eye-slashed.png'
+import '../assets/colors.css'
+import '../assets/animations.css'
+import '../assets/App.css'
+
+import { styled } from '@mui/material/styles';
+import { default as MUIButton } from '@mui/material/Button';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import DrawLoadingScreen from '../views/LoadingScreen';
+import AuthorizationContext from '../context/AuthorizationContext';
+
+export function Page({ overlayActive, overlayHandler, children, loading = false, timeout = 500 }) {
+  const [pageLoading, setPageLoading] = useState(loading);
+  const {contextUser, contextSetUser} = useContext(AuthorizationContext);
+  const location = useLocation();
+  const prevLocation = useRef('');
+
+  function PreloadHandler() { // Handler da se animacije ne puste na page load
+    useEffect(() => {
+      if (pageLoading) {
+        setTimeout(() => {
+          document.body.classList.add("preload");
+        }, timeout + 100);
+      }
+      else if (prevLocation.current.pathname !== location.pathname) {
+        document.body.classList.add("preload");
+      }
+
+      setTimeout(() => {
+        document.body.classList.remove("preload");
+      }, timeout + 300);
+
+      prevLocation.current = location;
+    }, []);
+
+    return null;
+  }
+
+  useEffect(() => {
+    CheckRememberLogin();
+    CheckSessionLogin();
+
+    const delayedLoading = setTimeout(() => {
+      setPageLoading(false);
+
+      return () => clearTimeout(delayedLoading);
+    }, timeout);
+  }, [])
+
+  function CheckRememberLogin() {
+    var rememberLogin = localStorage.getItem("AptusMedicaRememberLogin");
+    var loginExpiry = localStorage.getItem("AptusMedicaExpiryDate");
+    if (!rememberLogin) { localStorage.clear(); }
+    if (Date.parse(loginExpiry) < Date.now()) { 
+      localStorage.clear(); 
+      contextSetUser({
+        id: -1,
+        name: "",
+        role: "Guest",
+        jwtToken: "",
+      });
+    }
+  }
+
+  function CheckSessionLogin() {
+    var rememberLogin = sessionStorage.getItem("AptusMedicaRememberLogin");
+    var loginExpiry = sessionStorage.getItem("AptusMedicaExpiryDate");
+    if (Date.parse(loginExpiry) < Date.now()) { 
+      sessionStorage.clear(); 
+      contextSetUser({
+        id: -1,
+        name: "",
+        role: "Guest",
+        jwtToken: "",
+      });
+    }
+  }
+
+  return (
+    <>
+      <DrawLoadingScreen loading={pageLoading} />
+      <PreloadHandler />
+      <div className='bg-gradient-to-b bg-gray-900 min-h-screen'>
+        <Header overlayActive={overlayActive} overlayHandler={overlayHandler} />
+        <div className="py-5 rounded-b-md shadow-2xl border-b md:border-x h-fit border-indigo-950 mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-6xl xl:max-w-7xl xl:px-10" style={{ minHeight: `calc(100vh - 150px)` }}>
+          {children}
+        </div>
+        <Footer />
+      </div>
+    </>
+  );
+}
+
+export function Button({ type, onClick, disabled, preventTab, className, children }) {
+  return (
+    <button
+      type={type}
+      disabled={disabled}
+      tabIndex={preventTab ? -1 : 0}
+      className={`focus:ring color-button outline-none shadow-md w-fit ${className}`}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  );
+}
+
+export function FileUpload({ className, width, height, text, buttonText, setPicture, limitInMegabytes = 1}) {
+  const [fileName, setFileName] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const VisuallyHiddenInput = styled('input')({
+    clip: 'rect(0 0 0 0)',
+    clipPath: 'inset(50%)',
+    height: 1,
+    textTransform: 'lowercase',
+    overflow: 'hidden',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    whiteSpace: 'nowrap',
+    width: 1,
+  });
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file && file.size < limitInMegabytes * 1000000) {
+      setFileName(file.name);
+      setPicture(file);
+      setErrorMessage('');
+      console.log(file);
+    }
+    if(file.size >= limitInMegabytes * 1000000)
+    {
+      setErrorMessage(`Fajl je prevelik! Limit je ${limitInMegabytes}MB.`);
+      console.error(file);  
+    }
+  };
+
+  return (
+    <>
+      <div className='hidden sm:flex items-baseline'>
+        <p className='sm:mt-4 mr-1'>{text}</p>
+        <p className='truncate'>{fileName ? fileName : ""}</p>
+      </div>
+      <div className={className}>
+        <MUIButton
+          style={{ height: height, width: width, backgroundColor: "#2dacdf" }}
+          component="label"
+          role={undefined}
+          variant="contained"
+          tabIndex={-1}
+          startIcon={<CloudUploadIcon />}
+        >
+          {buttonText}
+          <VisuallyHiddenInput type="file" accept='image/png, image/jpeg' onChange={handleFileChange} />
+        </MUIButton>
+      </div>
+      <div className="flex justify-center mt-2 sm:hidden">
+        <p className='truncate'>{fileName ? `Slika: ${fileName}` : ""}</p>
+      </div>
+      {errorMessage.length > 0 && <p className='text-red-600'>{errorMessage}</p>}
+    </>
+  );
+}
+
+export function SelectableButton({ onClick, selected, preventTab, className, children }) {
+  return (
+    <button
+      tabIndex={preventTab ? -1 : 0}
+      className={`rounded-xl focus:ring outline-none shadow-md w-fit ${selected ? "color-button-sel" : "color-button-unsel"} ${className}`}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  );
+}
+
+export function FormButton({ text, disabled, onClick, className }) {
+  return (
+    <div className="mt-6">
+      <button
+        type="submit"
+        disabled={disabled}
+        onClick={onClick}
+        className={`w-full px-4 py-2 text-sm text-center color-button rounded-md focus:ring-4 outline-none ${className}`}
+      >
+        {text}
+      </button>
+    </div>
+  );
+}
+
+export function Link({ route, disabled, href, onClick, preventTab, className, children, param }) {
+  return (
+    <Goto
+      to={param ? `${route}${param}` : route}
+      href={href}
+      disabled={disabled}
+      tabIndex={preventTab || disabled ? -1 : 0}
+      onClick={disabled ? null : onClick}
+      className={`${disabled ? "text-gray-400 cursor-default" : "color-primary cursor-pointer hover:underline focus:ring-2"} outline-none ${className}`}
+    >
+      {children}
+    </Goto>
+  );
+}
+
+export function Checkbox({ value, className, required, preventTab, children, onChange }) {
+  return (
+    <label className={`inline-flex items-center ${className}`}>
+      <input
+        type="checkbox"
+        value={value}
+        tabIndex={preventTab ? -1 : 0}
+        onChange={onChange}
+        className="focus:ring-2 outline-none hover:ring-2 hover:ring-primary"
+      />
+      <span className="block ml-2 text-sm text-gray-700">
+        {children}
+      </span>
+      <span className="text-md text-red-600">
+        {required ? "*" : ""}
+      </span>
+    </label>
+  );
+}
+
+export function Exit({ blue, preventTab, centered, disabled, notFocusable, className, onClick }) {
+  return (
+    // Na zalost <a> mora da bi bilo clickable sa Tab-Enter
+    <div className={`w-fit ${centered ? "m-auto" : "ml-auto"}`}>
+      <a
+        href="#"
+        onClick={onClick}
+        tabIndex={preventTab ? -1 : 0}
+        className={`${disabled ? "cursor-default" : ""} ${notFocusable ? "" : "outline-primary"}`}
+      >
+        <img
+          tabIndex={-1}
+          className={`h-auto outline-none ${className}`}
+          src={blue ? exitIconBlue : exitIcon}
+        />
+      </a>
+    </div>
+  );
+}
+
+export function Input({ placeholder, value, preventTab, date, minDate, maxDate, multiline, disabled, rows, onFocus, onBlur, onChange, onKeyDown, className }) {
+  return (
+    multiline ? (
+      <textarea
+        spellCheck={false}
+        rows={rows}
+        value={value}
+        disabled={disabled}
+        tabIndex={preventTab ? -1 : 0}
+        onChange={onChange}
+        onFocus={onFocus}
+        onBlur={onBlur}
+        onKeyDown={onKeyDown}
+        placeholder={placeholder}
+        className={`relative h-fit z-10 w-full px-3 py-2 pr-10 bg-secondary shadow-md focus:ring outline-primary border-1 border-primary ${className} ${disabled ? 'opacity-50' : ''}`}
+      />
+    ) : (
+      <input
+        type={date ? "date" : "search"}
+        min={minDate}
+        max={maxDate}
+        disabled={disabled}
+        spellCheck={false}
+        value={value}
+        tabIndex={preventTab ? -1 : 0}
+        onChange={onChange}
+        onFocus={onFocus}
+        onBlur={onBlur}
+        onKeyDown={onKeyDown}
+        placeholder={placeholder}
+        className={`relative z-10 w-full p-1 pr-5 bg-secondary shadow-md h-12 focus:ring outline-primary border-1 border-primary ${className} ${disabled ? 'opacity-50' : ''}`}
+      />
+    )
+  );
+}
+
+export function FormInput({ text, textClass, labelClass, date, minDate, maxDate, required, multiline, rows, inline, value, type, onChange, onBlur, pattern, className, alertCond, alertText, disabled }) {
+  return (
+    <label className={`block mt-3 ${inline ? "flex flex-nowrap items-center" : ""}`}>
+      <div className={`${inline ? "mr-2" : ""} ${labelClass}`}>
+        <span className={`text-md text-gray-700 ${textClass}`}>
+          {text}
+        </span>
+        <span className="text-md text-red-600">
+          {required ? "*" : ""}
+        </span>
+      </div>
+      {multiline ? (
+        <textarea
+          type={date ? "date" : type}
+          rows={rows}
+          value={value}
+          min={minDate}
+          max={maxDate}
+          spellCheck={false}
+          onChange={onChange}
+          onBlur={onBlur}
+          pattern={pattern}
+          className={`block w-full mt-1 rounded-md bg-gray-50 border border-gray-200 p-2 focus:ring outline-none ${alertCond ? "ring ring-red-300" : ""} ${className}`}
+        />
+      ) : (
+        <input
+          type={date ? "date" : type}
+          value={value}
+          min={minDate}
+          max={maxDate}
+          spellCheck={false}
+          onChange={onChange}
+          disabled={disabled}
+          onBlur={onBlur}
+          pattern={pattern}
+          className={`block w-full mt-1 rounded-md bg-gray-50 border border-gray-200 p-2 focus:ring outline-none ${alertCond ? "ring ring-red-300" : ""} ${className}`}
+        />
+      )}
+      {alertCond && <p className="text-red-400 text-xs mt-1">{alertText}</p>}
+    </label>
+  );
+}
+
+export function Password({ text, textClass, labelClass, required, visibility, inline, value, onChange, onBlur, className, alertCond, alertText }) {
+  const [showPassword, setShowPassword] = useState(false);
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  return (
+    <label className={`block mt-3 ${inline ? "flex flex-nowrap items-center" : ""}`}>
+      <div className={`${inline ? "mr-2" : ""} ${labelClass}`}>
+        <span className={`text-md text-gray-700 ${textClass}`}>
+          {text}
+        </span>
+        <span className="text-md text-red-600">
+          {required ? "*" : ""}
+        </span>
+      </div>
+      <div className="relative w-full">
+        <input
+          type={showPassword ? 'text' : 'password'}
+          value={value}
+          spellCheck={false}
+          onChange={onChange}
+          onBlur={onBlur}
+          className={`block w-full pr-8 mt-1 rounded-md bg-gray-50 border border-gray-200 p-2 focus:ring outline-none ${alertCond ? "ring ring-red-300" : ""} ${className}`}
+        />
+        <img
+          src={visibility ? (showPassword ? eyeSlashed : eye) : ""}
+          className={`absolute ${inline ? "mt-1.5" : "mt-1"} top-2 right-2 cursor-pointer w-5 h-auto filter-gray`}
+          onClick={togglePasswordVisibility}
+        />
+        {alertCond && <p className="text-red-400 text-xs mt-1">{alertText}</p>}
+      </div>
+    </label>
+  );
+}
+
+export function GetMonthName(monthNumber) {
+  const months = [
+    "Januar", "Februar", "Mart", "April", "Maj", "Jun",
+    "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"
+  ];
+
+  return months[monthNumber];
+}

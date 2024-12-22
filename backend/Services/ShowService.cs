@@ -54,7 +54,7 @@ public class ShowService
 
         }
     */
-    public async Task<Show> GetShowByTitleAsync(string title)
+    public async Task<Show?> GetShowByTitleAsync(string title)
     {
         using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
         await client.ConnectAsync(); //mozda treba neki try catch i mozda treba singleton pa da se client koristi drugacije 
