@@ -98,11 +98,15 @@ public class ShowService
         using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
         await client.ConnectAsync();
 
-        // merge proveri da li postoji pre kreiranja
+        var showFound = await client.Cypher.Match("(s:Show {title: $title})").Return((s) => s.As<Show>()).ResultsAsync;
 
+        if (showFound == null)
+            return null;
+
+        // merge proveri da li postoji pre kreiranja
         var query = client.Cypher
             .Merge("(s:Show {title: $title})")
-            .WithParam("title", show.title) //ovo ce proci iako serija postoji samo ce se dodati zanr prakticno radice kao apdejt onda mozemo to da promenimo ako zelis
+            .WithParam("title", show.title) //ovo ce proci iako serija postoji samo ce se dodati zanr prakticno radice kao apdejt onda mozemo to da promenimo ako zelis (promenila)
             .OnCreate()
             .Set("s.desc = $desc, s.year = $year")
             .WithParam("desc", show.desc)
@@ -117,7 +121,7 @@ public class ShowService
                 .WithParam($"gn_{index}", genre.name)
                 .Merge($"(s)-[:IN_GENRE]->({genreKey})");
         }
-        if (show.cast!= null && show.cast.Count >0)
+        if (show.cast != null && show.cast.Count > 0)
         {
             foreach (var castMember in show.cast)
             {
@@ -134,7 +138,7 @@ public class ShowService
         }
 
         var result = await query.Return((s) => s.As<Show>()).ResultsAsync;
-         Console.WriteLine($"NASLOV SERIJE JE:::::::: {result.First().title}");
+        Console.WriteLine($"NASLOV SERIJE JE:::::::: {result.First().title}");
 
         return result.First();
 
@@ -181,7 +185,7 @@ public class ShowService
         return shows;
     }
 
-    public async Task<Show?> UpdateShowAsync(Show show, string oldTitle) //RATING NE MOZE DA SE APDEJTUJE ODAVDE (ovo sve rade moderatori)
+    public async Task<Show?> UpdateShowAsync(Show show, string oldTitle) //RATING NE MOZE DA SE APDEJTUJE ODAVDE (ovo sve rade moderatori) treba da postoji lista serija koju je moguce apdejtovati
     {
         using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
         await client.ConnectAsync();
@@ -192,7 +196,7 @@ public class ShowService
 
         if (!string.IsNullOrWhiteSpace(show.title))
         {
-            query = query.Set("s.title = $title").WithParam("title", show.title);
+            query = query.Set("s.title = $t").WithParam("t", show.title);
         }
 
         if (!string.IsNullOrWhiteSpace(show.desc))
@@ -210,7 +214,7 @@ public class ShowService
             query = query.Set("s.imageUrl = $imageUrl").WithParam("imageUrl", show.imageUrl);
         }
 
-        if (show.genres != null && show.genres.Any())
+        if (show.genres != null && show.genres.Any()) //treba da uradim za izbacivanje zanrova!! ?
         {
             foreach (var genre in show.genres)
             {
@@ -236,9 +240,10 @@ public class ShowService
             foreach (var actorToRemove in actorsToRemove)
             {
                 query = query
-                    .Match("(s:Show {title: $title})<-[:ACTED_IN]-(a:Actor)")
+                    .Match("(s:Show {title: $title1})<-[:ACTED_IN]-(a:Actor)")
                     .Where("a.name = $actorName")
                     .WithParam("actorName", actorToRemove.actor.name)
+                    .WithParam("title1", oldTitle)
                     .Delete("s<-[:ACTED_IN]-a");
             }
 
@@ -302,6 +307,96 @@ public class ShowService
         return result.First();
     }
 
+    public async Task<List<Show>> RecommendTVShows(string username)
+    {
+
+        using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
+        await client.ConnectAsync();
+
+        var query = client.Cypher
+             .Match("(u:User {username: $username})-[r:WATCHED]->(s:Show)<-[:WATCHED]-(other:User)")
+             .WithParam("username", username)
+             .Where("u <> other AND r.rating >= 7")
+             .With("u, other") //sad se nadalje koriste samo ovi korisnici koji su pronadjeni
+             .Match("(other)-[w:WATCHED]->(recommended:Show)")
+             .Where("NOT (u)-[w:WATCHED]->(recommended) AND w.rating >= 7")
+             .With("recommended, count(*) AS count") //spaja seriju sa brojem njenih pojavljivanja "u jedan red"
+             .OrderByDescending("count")
+             .Limit(10)
+             .Return((recommended) => recommended.As<Show>());
+
+        var result = await query.ResultsAsync;
+
+        return result.ToList();
+    }
+
+    public async Task<List<Show>> WhatFriendsAreWatching(string username)
+    {
+
+        using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
+        await client.ConnectAsync();
+
+        var query = client.Cypher
+             .Match("(u:User {username: $username})-[f:FOLLOWING]->(friend:User)")
+             .WithParam("username", username)
+             .With("u, friend")
+             .Match("(friend)-[w:WATCHED]->(s:Show)")
+             .Where("NOT (u)-[w:WATCHED]->(s) AND w.rating >= 8")
+             .With("s, count(*) AS count") //spaja seriju sa brojem njenih pojavljivanja "u jedan red"
+             .OrderByDescending("count")
+             .Limit(10)
+             .Return((recommended) => recommended.As<Show>());
+
+        var result = await query.ResultsAsync;
+
+        return result.ToList();
+    }
+    public async Task<List<Show>> SearchShowsByGenre(List<string> genres)
+    {
+
+        using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
+        await client.ConnectAsync();
+
+        var genreNames = genres.Select(g => char.ToUpper(g[0]) + g[1..].ToLower()).ToList();
+
+        var query = client.Cypher
+         .Match("(s:Show)-[:IN_GENRE]->(g:Genre)")
+         .Where("g.name IN $names")
+         .WithParam("names", genreNames)
+         .With("s, count(g) AS genreCount")
+         .OrderByDescending("genreCount") // Prioritet serijama koje pripadaju više traženih žanrova
+         .Limit(30)
+         .Return(s => s.As<Show>()); //  izgleda ne mora distinct zbog count jer su tu vec grupise
+
+        var result = await query.ResultsAsync;
+
+        return result.ToList();
+    }
+
+    public async Task<List<Show>> SearchShowsByActor(string actorName)
+    {
+
+        using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
+        await client.ConnectAsync();
+
+        var name = actorName.Split();
+        var firstName = char.ToUpper(name.First()[0]) + name.First()[1..].ToLower();
+        var lastName = char.ToUpper(name.Last()[0]) + name.Last()[1..].ToLower();
+        
+        var fullName = firstName + " " + lastName;
+
+        Console.WriteLine(fullName);
+
+        var query = client.Cypher
+            .Match("(s:Show)<-[:ACTED_IN]-(a:Actor {name: $actorName})")
+            .WithParam("actorName", fullName)
+            .Limit(30)
+            .Return(s => s.As<Show>());
+
+        var result = await query.ResultsAsync;
+
+        return result.ToList();
+    }
 
     /*
         public async Task<List<Show>> SearchShowsAsync(string query)

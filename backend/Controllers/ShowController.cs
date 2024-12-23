@@ -37,6 +37,24 @@ public class ShowController : ControllerBase
         return Ok("Uspesno dodata serija");
     }
 
+    [HttpPut("UpdateAShow/{oldTitle}")]
+    public async Task<IActionResult> UpdateAShow([FromBody] Show show, string oldTitle)
+    {
+        var data = await _showService.UpdateShowAsync(show, oldTitle);
+
+        if (show == null)
+        {
+            return BadRequest("Serija nije prosleđena.");
+        }
+
+        if (data == null)
+        {
+            return StatusCode(500, "Došlo je do greške pri ažuriranju serije.");
+        }
+
+        return Ok("Uspešno ažurirana serija.");
+    }
+
     [HttpGet("GetAllShows")]
     public async Task<IActionResult> GetAllShows()
     {
@@ -67,5 +85,38 @@ public class ShowController : ControllerBase
         return Ok($"Nova ocena je {newRating}");
 
     }
+
+    [HttpGet("GetRecommendations/{username}")] //nije testirano
+    public async Task<IActionResult> GetRecommendations(string username)
+    {
+        var shows = await _showService.RecommendTVShows(username);
+        return Ok(shows);
+    }
+
+    [HttpGet("FriendsWatchList/{username}")]//nije testirano
+    public async Task<IActionResult> FriendsWatchList(string username)
+    {
+        var shows = await _showService.WhatFriendsAreWatching(username);
+        return Ok(shows);
+    }
+
+    [HttpGet("SearchShowsByGenre")]//nije testirano
+    public async Task<IActionResult> SearchShowByGenre(List<string> genres)
+    {
+        var shows = await _showService.SearchShowsByGenre(genres);
+        if(shows.Count == 0)
+            return BadRequest("Nije pronadjena nijedna serija sa ovim žanrom");
+        return Ok(shows);
+    }
+
+    [HttpGet("SearchShowsByActor/{actorName}")]//nije testirano
+    public async Task<IActionResult> SearchShowByActor(string actorName)
+    {
+        var shows = await _showService.SearchShowsByActor(actorName);
+         if(shows.Count == 0)
+            return BadRequest("Nije pronadjena nijedna serija sa ovim glumcem");
+        return Ok(shows);
+    }
+
 
 }

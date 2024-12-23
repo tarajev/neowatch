@@ -15,5 +15,5 @@ public class User {
     [JsonIgnore] public List<User>? followers { get; set; }
     [JsonIgnore] public List<Show>? yetToWatch { get; set; }
     [JsonIgnore] public List<Watched>? watched { get; set; }
-    [JsonIgnore] public List<Review>? reviews { get; set; }
+   // [JsonIgnore] public List<Review>? reviews { get; set; } ovu klasu nemamo, recenzija je sada kao properti veze Watched (pogledaj klasu)
 }

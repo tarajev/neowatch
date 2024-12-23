@@ -35,7 +35,6 @@ public class ActorController : ControllerBase
         else return BadRequest($"Doslo je do greške prilikom brisanja glumca: {name}");
     }
 
-
     [HttpPost("LinkTVShowAndActor/{showTitle}/{actorName}/{role}")]
     public async Task<IActionResult> LinkTvShowAndActor(string showTitle, string actorName, string role)
     {
