@@ -78,7 +78,7 @@
   background-color: #5700a2;
   border-width: 1px;
   border-color: #5700a2;
-  color: black;
+  color: rgb(130 137 150);
 }
 
 .color-button:hover {
@@ -95,9 +95,9 @@
 }
 
 .color-button:disabled {
-  background-color: rgb(229 231 235);
-  border-color: transparent;
-  color: grey;
+  background-color: rgb(17 24 39);
+  border-color: rgb(60 60 60);
+  color: rgb(130 137 150);
 }
 
 .color-button-sel {

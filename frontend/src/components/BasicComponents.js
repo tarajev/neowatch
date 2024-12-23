@@ -3,7 +3,6 @@ import { Link as Goto, useLocation } from "react-router-dom";
 import Header from './Header'
 import Footer from './Footer'
 import exitIcon from '../resources/img/exit-icon.png'
-import exitIconBlue from '../resources/img/exit-icon-blue.png'
 import eye from '../resources/img/password-eye.png'
 import eyeSlashed from '../resources/img/password-eye-slashed.png'
 import '../assets/colors.css'
@@ -44,45 +43,14 @@ export function Page({ overlayActive, overlayHandler, children, loading = false,
   }
 
   useEffect(() => {
-    CheckRememberLogin();
-    CheckSessionLogin();
-
     const delayedLoading = setTimeout(() => {
       setPageLoading(false);
-
       return () => clearTimeout(delayedLoading);
     }, timeout);
   }, [])
 
-  function CheckRememberLogin() {
-    var rememberLogin = localStorage.getItem("AptusMedicaRememberLogin");
-    var loginExpiry = localStorage.getItem("AptusMedicaExpiryDate");
-    if (!rememberLogin) { localStorage.clear(); }
-    if (Date.parse(loginExpiry) < Date.now()) { 
-      localStorage.clear(); 
-      contextSetUser({
-        id: -1,
-        name: "",
-        role: "Guest",
-        jwtToken: "",
-      });
-    }
-  }
-
-  function CheckSessionLogin() {
-    var rememberLogin = sessionStorage.getItem("AptusMedicaRememberLogin");
-    var loginExpiry = sessionStorage.getItem("AptusMedicaExpiryDate");
-    if (Date.parse(loginExpiry) < Date.now()) { 
-      sessionStorage.clear(); 
-      contextSetUser({
-        id: -1,
-        name: "",
-        role: "Guest",
-        jwtToken: "",
-      });
-    }
-  }
-
+  // TODO - Da se uradi za check context usera da li je ulogovan vec bio ili ne?
+  
   return (
     <>
       <DrawLoadingScreen loading={pageLoading} />
@@ -221,9 +189,9 @@ export function Checkbox({ value, className, required, preventTab, children, onC
         value={value}
         tabIndex={preventTab ? -1 : 0}
         onChange={onChange}
-        className="focus:ring-2 outline-none hover:ring-2 hover:ring-primary"
+        className="focus:ring-2 border outline-none hover:ring-2 hover:ring-primary"
       />
-      <span className="block ml-2 text-sm text-gray-700">
+      <span className="block ml-2 text-sm text-gray-400">
         {children}
       </span>
       <span className="text-md text-red-600">
@@ -233,7 +201,7 @@ export function Checkbox({ value, className, required, preventTab, children, onC
   );
 }
 
-export function Exit({ blue, preventTab, centered, disabled, notFocusable, className, onClick }) {
+export function Exit({ preventTab, centered, disabled, notFocusable, className, onClick }) {
   return (
     // Na zalost <a> mora da bi bilo clickable sa Tab-Enter
     <div className={`w-fit ${centered ? "m-auto" : "ml-auto"}`}>
@@ -246,7 +214,7 @@ export function Exit({ blue, preventTab, centered, disabled, notFocusable, class
         <img
           tabIndex={-1}
           className={`h-auto outline-none ${className}`}
-          src={blue ? exitIconBlue : exitIcon}
+          src={exitIcon}
         />
       </a>
     </div>
@@ -293,7 +261,7 @@ export function FormInput({ text, textClass, labelClass, date, minDate, maxDate,
   return (
     <label className={`block mt-3 ${inline ? "flex flex-nowrap items-center" : ""}`}>
       <div className={`${inline ? "mr-2" : ""} ${labelClass}`}>
-        <span className={`text-md text-gray-700 ${textClass}`}>
+        <span className={`text-md text-gray-400 ${textClass}`}>
           {text}
         </span>
         <span className="text-md text-red-600">
@@ -311,7 +279,7 @@ export function FormInput({ text, textClass, labelClass, date, minDate, maxDate,
           onChange={onChange}
           onBlur={onBlur}
           pattern={pattern}
-          className={`block w-full mt-1 rounded-md bg-gray-50 border border-gray-200 p-2 focus:ring outline-none ${alertCond ? "ring ring-red-300" : ""} ${className}`}
+          className={`block w-full mt-1 rounded-md text-gray-200 bg-gray-700 border border-gray-800 p-2 focus:ring outline-none ${alertCond ? "ring ring-red-300" : ""} ${className}`}
         />
       ) : (
         <input
@@ -324,7 +292,7 @@ export function FormInput({ text, textClass, labelClass, date, minDate, maxDate,
           disabled={disabled}
           onBlur={onBlur}
           pattern={pattern}
-          className={`block w-full mt-1 rounded-md bg-gray-50 border border-gray-200 p-2 focus:ring outline-none ${alertCond ? "ring ring-red-300" : ""} ${className}`}
+          className={`block w-full mt-1 rounded-md text-gray-200 bg-gray-700 border border-gray-800 p-2 focus:ring outline-none ${alertCond ? "ring ring-red-300" : ""} ${className}`}
         />
       )}
       {alertCond && <p className="text-red-400 text-xs mt-1">{alertText}</p>}
@@ -342,7 +310,7 @@ export function Password({ text, textClass, labelClass, required, visibility, in
   return (
     <label className={`block mt-3 ${inline ? "flex flex-nowrap items-center" : ""}`}>
       <div className={`${inline ? "mr-2" : ""} ${labelClass}`}>
-        <span className={`text-md text-gray-700 ${textClass}`}>
+        <span className={`text-md text-gray-400 ${textClass}`}>
           {text}
         </span>
         <span className="text-md text-red-600">
@@ -356,7 +324,7 @@ export function Password({ text, textClass, labelClass, required, visibility, in
           spellCheck={false}
           onChange={onChange}
           onBlur={onBlur}
-          className={`block w-full pr-8 mt-1 rounded-md bg-gray-50 border border-gray-200 p-2 focus:ring outline-none ${alertCond ? "ring ring-red-300" : ""} ${className}`}
+          className={`block w-full pr-8 mt-1 rounded-md text-gray-300 bg-gray-700 border border-gray-800 p-2 focus:ring outline-none ${alertCond ? "ring ring-red-300" : ""} ${className}`}
         />
         <img
           src={visibility ? (showPassword ? eyeSlashed : eye) : ""}
@@ -370,10 +338,6 @@ export function Password({ text, textClass, labelClass, required, visibility, in
 }
 
 export function GetMonthName(monthNumber) {
-  const months = [
-    "Januar", "Februar", "Mart", "April", "Maj", "Jun",
-    "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"
-  ];
-
+  const months = ["Januar", "Februar", "Mart", "April", "Maj", "Jun", "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar" ];
   return months[monthNumber];
 }

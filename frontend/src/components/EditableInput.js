@@ -31,7 +31,6 @@ export default function EditableInput({ initialValue, preventTab, label, setValu
 
   return (
     <div className='-mb-1'>
-      {/*<input className="p-2 border-[#2dacdf] border-y-4 " type="text"/>*/}
       {isEditing ? (
         <TextField
           fullWidth
@@ -47,17 +46,17 @@ export default function EditableInput({ initialValue, preventTab, label, setValu
           multiline={multiline}
           sx={{
             "& label.Mui-focused": {
-              color: "#2dacdf"
+              color: "#5700a2"
             },
             "& .MuiInput-underline:after": {
-              borderBottomColor: "#2dacdf"
+              borderBottomColor: "#5700a2"
             }
           }}
         />
       ) : (
         <div>
-          <span className="mr-2 font-semibold text-[#2dacdf]">{label}</span> <span className="mr-2 break-normal text-wrap">{newValue}</span>
-          <IconButton sx={{ color: '#2dacdf', mb: .5 }} onClick={handleEditClick} tabIndex={preventTab ? -1 : 0} aria-label="edit" size="small" >
+          <span className="mr-2 font-semibold text-[#5700a2]">{label}</span> <span className="mr-2 break-normal text-wrap">{newValue}</span>
+          <IconButton sx={{ color: '#5700a2', mb: .5 }} onClick={handleEditClick} tabIndex={preventTab ? -1 : 0} aria-label="edit" size="small" >
             <EditIcon fontSize="inherit" />
           </IconButton>
         </div>

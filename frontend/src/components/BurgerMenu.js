@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link } from '../components/BasicComponents';
-import colors from '../assets/colors.css';
 import Tooltip from '../components/Tooltip';
 
 export default function BurgerMenu({ preventTab, icon, filter, size, xOffset, yOffset, className, listItemArray, grouped, hoverText }) {

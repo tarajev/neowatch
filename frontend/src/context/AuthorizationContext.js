@@ -1,5 +1,7 @@
 import React from "react";
 
+// TODO - Da se odradi context kako treba
+
 const AuthorizationContext = React.createContext({
     APIUrl: "http://localhost:5054/API/",
     contextUser: {
@@ -8,9 +10,8 @@ const AuthorizationContext = React.createContext({
         role: "Guest",
         jwtToken: "",
         email: "",
-        jmbg: "",
         picture: "",
-        description: ""
+        bio: ""
     },
     contextSetUser: () => {},
 });

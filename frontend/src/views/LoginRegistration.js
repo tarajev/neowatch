@@ -6,15 +6,11 @@ import '../assets/colors.css';
 import '../assets/animations.css';
 import '../assets/App.css'
 import axios from 'axios';
-//import AuthorizationContext from '../context/AuthorizationContext';
+import AuthorizationContext from '../context/AuthorizationContext';
 
 export function DrawRegistration({ onLoginClick, exitRegistration, handleLoginClick }) {
-  //const { APIUrl } = useContext(AuthorizationContext);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [jmbg, setJMBG] = useState('');
-  const [isJmbgValid, setJMBGValid] = useState(true);
-  const [jmbgTouched, setJMBGTouched] = useState(false);
+  const { APIUrl } = useContext(AuthorizationContext);
+  const [userName, setUserName] = useState('');
   const [email, setEmail] = useState('');
   const [isEmailValid, setIsEmailValid] = useState(true);
   const [emailTouched, setEmailTouched] = useState(false);
@@ -22,30 +18,12 @@ export function DrawRegistration({ onLoginClick, exitRegistration, handleLoginCl
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordTouched, setPasswordTouched] = useState(false);
   const [passwordMatch, setPasswordMatch] = useState(true);
-  const [invalidJMBG, setInvalidJMBG] = useState(false);
   const [invalidEmail, setInvalidEmail] = useState(false);
   const formRef = useRef(null); // Za click van forme
-
-  const handleFirstNameChange = (e) => {
-    const value = e.target.value.replace(/[0-9\s!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/g, '');
-    setFirstName(value);
-  };
-
-  const handleLastNameChange = (e) => {
-    const value = e.target.value.replace(/[0-9!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?~]/g, ''); // Space ne izbacujemo u slucaju da korisnik ima 2 prezimena
-    setLastName(value);
-  };
-
-  const handleJMBGChange = (e) => {
-    const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 13);
-    setJMBG(value);
-    setInvalidJMBG(false);
-  };
-
-  const handleJMBGBlur = () => {
-    setJMBGTouched(true);
-    setJMBGValid(jmbg.length === 13);
-  };
+  
+  const handleUsernameChange = (e) => {
+    setUserName(e.target.value); // Treba regex da se uradi
+  }
 
   const validateEmail = (email) => {
     const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)$/;
@@ -78,9 +56,7 @@ export function DrawRegistration({ onLoginClick, exitRegistration, handleLoginCl
   };
 
   const disableSubmit = () => {
-    return !firstName ||
-      !lastName ||
-      !jmbg ||
+    return !userName ||
       !email ||
       !password ||
       !confirmPassword ||
@@ -92,29 +68,26 @@ export function DrawRegistration({ onLoginClick, exitRegistration, handleLoginCl
   const handleRegisterSubmit = async (event) => {
     event.preventDefault();
 
-    //const jmbgResult = await axios.get(APIUrl + `Authentication/CheckJMBG/${jmbg}`);
-    //const emailResult = await axios.get(APIUrl + `Authentication/CheckEmail/${email}`);
+    const emailResult = await axios.get(APIUrl + `Authentication/CheckEmail/${email}`);
 
-    //setInvalidJMBG(jmbgResult.data);
-    // setInvalidEmail(emailResult.data);
+    setInvalidEmail(emailResult.data);
 
-    // if (!jmbgResult.data && !emailResult.data) {
-    //   await axios.post(APIUrl + "Authentication/Register", {
-    //     name: (firstName + " " + lastName),
-    //     password: password,
-    //     email: email,
-    //     jmbg: jmbg
-    //   })
-    //     .then(response => {
-    //       response.json()
-    //     })
-    //     .then(response => {
-    //       console.log(response);
-    //     })
-    //     .catch(err => console.log(err));
+    if (!emailResult.data) {
+      await axios.post(APIUrl + "Authentication/Register", {
+        userName: userName,
+        email: email,
+        password: password
+      })
+        .then(response => {
+          response.json()
+        })
+        .then(response => {
+          console.log(response);
+        })
+        .catch(err => console.log(err));
 
-    //   exitRegistration();
-    // }
+      exitRegistration();
+    }
   }
 
   const exitRegistrationForm = () => {
@@ -137,7 +110,7 @@ export function DrawRegistration({ onLoginClick, exitRegistration, handleLoginCl
   return (
     <div className="overlay show">
       <div className="sm:flex sm:items-center hidescrollbar sm:justify-center h-screen overflow-y-auto">
-        <div ref={formRef} className='w-full max-w-sm p-6 bg-white mx-auto rounded-md shadow-2xl fade-in'>
+        <div ref={formRef} className='w-full max-w-sm p-6 bg-gray-900 mx-auto rounded-md shadow-2xl fade-in'>
           <Exit
             blue
             className="ml-auto text-sm w-4"
@@ -149,28 +122,10 @@ export function DrawRegistration({ onLoginClick, exitRegistration, handleLoginCl
           />
           <form className="mt-4" onSubmit={handleRegisterSubmit}>
             <FormInput
-              text="Ime"
+              text="Korisničko ime"
               required
-              value={firstName}
-              onChange={handleFirstNameChange}
-              pattern="[A-Za-z]*"
-            />
-            <FormInput
-              text="Prezime"
-              required
-              value={lastName}
-              onChange={handleLastNameChange}
-              pattern="[A-Za-z ]*"
-            />
-            <FormInput
-              text="JMBG"
-              required
-              value={jmbg}
-              onBlur={handleJMBGBlur}
-              onChange={handleJMBGChange}
-              pattern="\d{13}"
-              alertCond={(!isJmbgValid && jmbgTouched) || invalidJMBG}
-              alertText={invalidJMBG ? "JMBG je već u upotrebi!" : "JMBG mora imati 13 cifara!"}
+              value={userName}
+              onChange={handleUsernameChange}
             />
             <FormInput
               text="EMail"
@@ -203,11 +158,11 @@ export function DrawRegistration({ onLoginClick, exitRegistration, handleLoginCl
               disabled={disableSubmit()}
             />
             <div className="flex items-center justify-between mt-3">
-              <span className="block text-sm text-gray-700">
+              <span className="block text-sm text-gray-400">
                 <span className="text-sm text-red-600">*</span>
                 Ova polja su obavezna.
               </span>
-              <span className="text-sm text-gray-700">
+              <span className="text-sm text-gray-400">
                 Imate nalog?
                 <Link href="#" className="text-sm ml-1" onClick={onLoginClick}>
                   Ulogujte se.
@@ -265,42 +220,8 @@ export function DrawLogin({ onRegisterClick, handleLoginClick }) {
 
   const handleLoginSubmit = async (event) => {
     event.preventDefault();
-    // await axios.post(APIUrl + "Authentication/Login", {
-    //   email: email,
-    //   password: password,
-    // })
-    //   .then(request => {
-    //     let data = { ...request.data };
-
-    //     var user = {
-    //       ...data.user,
-    //       jwtToken: data.jwtToken
-    //     };
-
-    //     delete user.password;
-        
-    //     contextSetUser(user);
-
-    //     if (rememberLogin) {
-    //       var now = new Date();
-    //       now.setHours(now.getHours() + 6);
-    //       localStorage.setItem('AptusMedicaUser', JSON.stringify(user));
-    //       localStorage.setItem('AptusMedicaExpiryDate', now);
-    //     }
-    //     else {
-    //       var now = new Date();
-    //       now.setHours(now.getHours() + 6);
-    //       sessionStorage.setItem('AptusMedicaUser', JSON.stringify(user));
-    //       sessionStorage.setItem('AptusMedicaExpiryDate', now);
-    //     }
-
-    //     localStorage.setItem('AptusMedicaRememberLogin', rememberLogin);
-    //     handleLoginClick();
-    //   })
-    //   .catch(error => {
-    //     console.log(error);
-    //     setLoginError("Pogrešan E-Mail ili Šifra!");
-    //   })
+    
+    // TODO
   }
 
   const validateEmail = (email) => {
@@ -328,31 +249,13 @@ export function DrawLogin({ onRegisterClick, handleLoginClick }) {
   }, [forgottenInfo]);
 
   const forgottenLoginCredentials = async (email) => {
-    try {
-      var route = `Guest/SendLoginCredentials/${email}`;
-
-      setShowThrobber(true);
-      // await axios.post(APIUrl + route, {},
-      //   {
-      //     headers: {
-      //       Authorization: `Bearer ${contextUser.jwtToken}`
-      //     }
-      //   }
-      // );
-
-      setShowThrobber(false);
-      setForgottenInfoSent(true);
-    } catch (error) {
-      setShowThrobber(false);
-      console.log(error);
-      setForgottenInfoError(error.response.status);
-    }
+    // TOOD
   }
 
   return (
     <div className="overlay show">
       <div className="flex items-center justify-center h-screen">
-        <div ref={formRef} className='w-full max-w-sm p-6 bg-white rounded-md shadow-2xl fade-in'>
+        <div ref={formRef} className='w-full max-w-sm p-6 bg-gray-900 rounded-md shadow-2xl fade-in'>
           <Exit
             blue
             className="ml-auto text-sm w-4"
@@ -397,7 +300,7 @@ export function DrawLogin({ onRegisterClick, handleLoginClick }) {
             <FormButton text="Ulogujte se" disabled={!isFormValid} />
 
             <div className="flex justify-end mt-3">
-              <span className="block text-sm text-gray-700">
+              <span className="block text-sm text-gray-400">
                 Nemate nalog?
               </span>
               <Link href="#" className="text-sm ml-1" onClick={onRegisterClick}>
