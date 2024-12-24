@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Neo4j.Driver;
 using Neo4jClient;
 using Neo4jClient.Cypher;
@@ -62,13 +63,14 @@ public class ShowService
         var query = client.Cypher
             .Match("(s:Show {title: $title})")
             .OptionalMatch("(g:Genre)<-[:IN_GENRE]-(s)")
-            .OptionalMatch("(a:Actor)-[:ACTED_IN]->(s)")
+            .OptionalMatch("(a:Actor)-[r:ACTED_IN]->(s)")
             .WithParam("title", title)
-            .Return((s, g, a) => new
+            .With("s, COLLECT(DISTINCT g) AS genres, COLLECT(DISTINCT{ actor: a, role: r.role }) AS acted")
+            .Return((s, genres, acted) => new
             {
                 Show = s.As<Show>(),
-                Genres = g.CollectAs<Genre>(), //collect as vraca vise rezultata
-                Actors = a.CollectAs<ActedIn>()
+                Genres = genres.As<List<Genre>>(), //collect as vraca vise rezultata
+                Actors = acted.As<List<ActedIn>>()
             });
 
         var result = await query.ResultsAsync;
@@ -152,14 +154,14 @@ public class ShowService
         await client.ConnectAsync();
 
         var query = client.Cypher
-        .Match("(a:Actor)-[:ACTED_IN]->(s:Show)-[:IN_GENRE]->(g:Genre)")
-        .With("s, COLLECT(DISTINCT g) AS genres, COLLECT(DISTINCT a) AS actors")  //ovo eliminise duplikate
+        .Match("(a:Actor)-[r:ACTED_IN]->(s:Show)-[:IN_GENRE]->(g:Genre)")
+        .With("s, COLLECT(DISTINCT g) AS genres,  COLLECT(DISTINCT{actor: a, role: r.role}) AS actedIn")  //ovo eliminise duplikate
         .Limit(30)
-        .Return((s, genres, actors) => new
+        .Return((s, genres, actedIn) => new
         {
             Show = s.As<Show>(),
             Genres = genres.As<List<Genre>>(),
-            Actors = actors.As<List<ActedIn>>()
+            ActedIn = actedIn.As<List<ActedIn>>(),
         });
 
         var result = await query.ResultsAsync;
@@ -176,7 +178,7 @@ public class ShowService
                 imageUrl = item.Show.imageUrl,
                 rating = item.Show.rating,
                 genres = item.Genres.ToList(),
-                cast = item.Actors.ToList()
+                cast = item.ActedIn.ToList()
             };
 
             shows.Add(show);
@@ -382,7 +384,7 @@ public class ShowService
         var name = actorName.Split();
         var firstName = char.ToUpper(name.First()[0]) + name.First()[1..].ToLower();
         var lastName = char.ToUpper(name.Last()[0]) + name.Last()[1..].ToLower();
-        
+
         var fullName = firstName + " " + lastName;
 
         Console.WriteLine(fullName);

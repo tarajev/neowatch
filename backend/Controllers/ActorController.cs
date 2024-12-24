@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Neo4jClient.Cypher;
 using NeoWatch.Model;
 using NeoWatch.Services;
 
+[Authorize(Roles = "Moderator")]
 public class ActorController : ControllerBase
 {
     private readonly ActorService _actorService;
@@ -12,6 +14,7 @@ public class ActorController : ControllerBase
         _actorService = actorService;
     }
 
+    [AllowAnonymous]
     [HttpGet("GetActorByName/{name}")]
     public async Task<IActionResult> GetActorByName(string name)
     {

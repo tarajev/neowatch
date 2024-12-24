@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Neo4jClient.Cypher;
 using NeoWatch.Model;
 using NeoWatch.Services;
 
+[Authorize(Roles = "User,Moderator")]
 public class ShowController : ControllerBase
 {
     private readonly ShowService _showService;
@@ -13,6 +15,7 @@ public class ShowController : ControllerBase
         _showService = ShowService;
     }
 
+    [AllowAnonymous]
     [HttpGet("GetShowByTitle/{title}")]
     public async Task<IActionResult> GetShowByTitle(string title)
     {
@@ -55,6 +58,7 @@ public class ShowController : ControllerBase
         return Ok("Uspešno ažurirana serija.");
     }
 
+    [AllowAnonymous]
     [HttpGet("GetAllShows")]
     public async Task<IActionResult> GetAllShows()
     {
@@ -65,6 +69,7 @@ public class ShowController : ControllerBase
             return BadRequest("No shows found.");
     }
 
+    [Authorize(Roles = "Moderator")]
     [HttpDelete("DeleteAShow/{title}")]
     public async Task<IActionResult> DeleteAShow(string title)
     {
@@ -85,7 +90,7 @@ public class ShowController : ControllerBase
         return Ok($"Nova ocena je {newRating}");
 
     }
-
+    [Authorize(Roles = "User")]
     [HttpGet("GetRecommendations/{username}")] //nije testirano
     public async Task<IActionResult> GetRecommendations(string username)
     {
@@ -93,6 +98,7 @@ public class ShowController : ControllerBase
         return Ok(shows);
     }
 
+    [Authorize(Roles = "User")]
     [HttpGet("FriendsWatchList/{username}")]//nije testirano
     public async Task<IActionResult> FriendsWatchList(string username)
     {
@@ -100,20 +106,22 @@ public class ShowController : ControllerBase
         return Ok(shows);
     }
 
-    [HttpGet("SearchShowsByGenre")]//nije testirano
+    [AllowAnonymous]
+    [HttpGet("SearchShowsByGenre")]
     public async Task<IActionResult> SearchShowByGenre(List<string> genres)
     {
         var shows = await _showService.SearchShowsByGenre(genres);
-        if(shows.Count == 0)
+        if (shows.Count == 0)
             return BadRequest("Nije pronadjena nijedna serija sa ovim žanrom");
         return Ok(shows);
     }
 
-    [HttpGet("SearchShowsByActor/{actorName}")]//nije testirano
+    [AllowAnonymous]
+    [HttpGet("SearchShowsByActor/{actorName}")]
     public async Task<IActionResult> SearchShowByActor(string actorName)
     {
         var shows = await _showService.SearchShowsByActor(actorName);
-         if(shows.Count == 0)
+        if (shows.Count == 0)
             return BadRequest("Nije pronadjena nijedna serija sa ovim glumcem");
         return Ok(shows);
     }
