@@ -38,30 +38,6 @@
   background-color: red;
 }
 
-.color-primary {
-  color: #5700a2
-}
-
-.color-primary:hover {
-  color: #5700a2
-}
-
-.color-secondary {
-  color: white
-}
-
-.color-accent {
-  color: red
-}
-
-.border-primary {
-  border-color: #5700a2;
-}
-
-.border-secondary {
-  border-color: white;
-}
-
 .outline-primary {
   outline-color: #5700a2;
 }
@@ -78,7 +54,6 @@
   background-color: #5700a2;
   border-width: 1px;
   border-color: #5700a2;
-  color: rgb(130 137 150);
 }
 
 .color-button:hover {
@@ -91,7 +66,7 @@
   background-color: #5700a2;
   border-width: 1px;
   border-color: #5700a2;
-  color: black;
+  color: rgb(200 200 200)
 }
 
 .color-button:disabled {

@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Neo4jClient.Cypher;
 using NeoWatch.Model;
 using NeoWatch.Services;
 
@@ -14,6 +13,9 @@ public class UserController : ControllerBase
         _userService = userService;
     }
 
+    #region User CRUD
+
+    [AllowAnonymous]
     [HttpGet("GetAllUsers")]
     public async Task<IActionResult> GetUserByUsername()
     {
@@ -21,6 +23,7 @@ public class UserController : ControllerBase
         return Ok(users);
     }
 
+    [AllowAnonymous]
     [HttpGet("GetUserByUsername/{username}")]
     public async Task<IActionResult> GetUserByUsername(string username)
     {
@@ -46,8 +49,67 @@ public class UserController : ControllerBase
         var user = await _userService.UpdateUserAsync(updatedUser);
 
         if (user != null)
-            return Ok($"Uspešno izmenjene informacije korisnika sa korisničkim imenom:");
+            return Ok($"Uspešno izmenjene informacije korisnika sa korisničkim imenom: {user.username}");
         else
             return BadRequest("Nije moguće izmeniti informacije korisnika.");
     }
+
+    [HttpDelete("DeleteUser")]
+    public async Task<IActionResult> DeleteUser(string username)
+    {
+        var user = await _userService.DeleteUserAsync(username);
+
+        if (user != null)
+            return Ok("Korisnik uspešno obrisan.");
+        else
+            return BadRequest("Korisnik ne postoji");
+    }
+
+    #endregion
+
+    #region Following
+
+    [HttpGet("GetUserFollowers")]
+    public async Task<IActionResult> GetUserFollowers(string username)
+    {
+        List<User>? users = await _userService.GetUserFollowersAsync(username);
+
+        if (users != null)
+            return Ok(users);
+        else
+            return BadRequest("Korisnik sa zadatim korisničkim imenom ne postoji.");
+    }
+
+    [HttpGet("GetUserFollowings")]
+    public async Task<IActionResult> GetUserFollowings(string username)
+    {
+        List<User>? users = await _userService.GetUserFollowingsAsync(username);
+
+        if (users != null)
+            return Ok(users);
+        else
+            return BadRequest("Korisnik sa zadatim korisničkim imenom ne postoji.");
+    }
+
+    [HttpPut("FollowUser")]
+    public async Task<IActionResult> FollowUser(string username, string userToFollow)
+    {
+        bool followed = await _userService.FollowUserAsync(username, userToFollow);
+        return Ok($"Korisnik je {(followed ? "uspešno" : "neuspešno")} zapraćen.");
+    }
+    
+    [HttpPut("UnfollowUser")]
+    public async Task<IActionResult> UnfollowUser(string username, string userToUnfollow)
+    {
+        bool unfollowed = await _userService.UnfollowUserAsync(username, userToUnfollow);
+        return Ok($"Korisnik {username} je {(unfollowed ? "uspešno" : "neuspešno")} otpratio korisnika {userToUnfollow}");
+    }
+
+    #endregion
+
+    #region Shows
+
+    
+
+    #endregion
 }

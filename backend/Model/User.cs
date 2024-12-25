@@ -12,9 +12,8 @@ public class User {
     public required string role {get; set;}  //moramo da čuvamo i ovo
     
     // JsonIgnore za Swagger
-    [JsonIgnore] public List<User>? following { get; set; }
-    [JsonIgnore] public List<User>? followers { get; set; }
-    [JsonIgnore] public List<Show>? yetToWatch { get; set; }
-    [JsonIgnore] public List<Watched>? watched { get; set; }
-   // [JsonIgnore] public List<Review>? reviews { get; set; } ovu klasu nemamo, recenzija je sada kao properti veze Watched (pogledaj klasu)
+    [JsonIgnore] public List<User> following { get; set; } = [];
+    [JsonIgnore] public List<User> followers { get; set; } = [];
+    [JsonIgnore] public List<Show> yetToWatch { get; set; } = [];
+    [JsonIgnore] public List<Watched> watched { get; set; } = [];
 }

@@ -55,7 +55,7 @@ export function Page({ overlayActive, overlayHandler, children, loading = false,
     <>
       <DrawLoadingScreen loading={pageLoading} />
       <PreloadHandler />
-      <div className='bg-gradient-to-b bg-gray-900 min-h-screen'>
+      <div className='bg-gray-900 min-h-screen'>
         <Header overlayActive={overlayActive} overlayHandler={overlayHandler} />
         <div className="py-5 rounded-b-md shadow-2xl border-b md:border-x h-fit border-indigo-950 mx-auto max-w-3xl px-4 sm:px-6 lg:max-w-6xl xl:max-w-7xl xl:px-10" style={{ minHeight: `calc(100vh - 150px)` }}>
           {children}
@@ -72,7 +72,7 @@ export function Button({ type, onClick, disabled, preventTab, className, childre
       type={type}
       disabled={disabled}
       tabIndex={preventTab ? -1 : 0}
-      className={`focus:ring color-button outline-none shadow-md w-fit ${className}`}
+      className={`focus:ring ring-indigo-600 color-button outline-none shadow-md w-fit ${className}`}
       onClick={onClick}
     >
       {children}
@@ -158,7 +158,7 @@ export function FormButton({ text, disabled, onClick, className }) {
         type="submit"
         disabled={disabled}
         onClick={onClick}
-        className={`w-full px-4 py-2 text-sm text-center color-button rounded-md focus:ring-4 outline-none ${className}`}
+        className={`w-full px-4 py-2 text-sm text-white text-center color-button rounded-md focus:ring-4 ring-indigo-600 outline-none ${className}`}
       >
         {text}
       </button>
@@ -174,7 +174,7 @@ export function Link({ route, disabled, href, onClick, preventTab, className, ch
       disabled={disabled}
       tabIndex={preventTab || disabled ? -1 : 0}
       onClick={disabled ? null : onClick}
-      className={`${disabled ? "text-gray-400 cursor-default" : "color-primary cursor-pointer hover:underline focus:ring-2"} outline-none ${className}`}
+      className={`${disabled ? "text-gray-600 cursor-default" : "text-indigo-400 cursor-pointer hover:underline focus:ring-2 ring-indigo-600"} outline-none ${className}`}
     >
       {children}
     </Goto>
@@ -189,7 +189,7 @@ export function Checkbox({ value, className, required, preventTab, children, onC
         value={value}
         tabIndex={preventTab ? -1 : 0}
         onChange={onChange}
-        className="focus:ring-2 border outline-none hover:ring-2 hover:ring-primary"
+        className="focus:ring-2 ring-indigo-600 accent-indigo-600 outline-none hover:ring-2"
       />
       <span className="block ml-2 text-sm text-gray-400">
         {children}
@@ -209,7 +209,7 @@ export function Exit({ preventTab, centered, disabled, notFocusable, className, 
         href="#"
         onClick={onClick}
         tabIndex={preventTab ? -1 : 0}
-        className={`${disabled ? "cursor-default" : ""} ${notFocusable ? "" : "outline-primary"}`}
+        className={`${disabled ? "cursor-default" : ""} ${notFocusable ? "" : "outline-transparent"}`}
       >
         <img
           tabIndex={-1}
@@ -235,7 +235,7 @@ export function Input({ placeholder, value, preventTab, date, minDate, maxDate, 
         onBlur={onBlur}
         onKeyDown={onKeyDown}
         placeholder={placeholder}
-        className={`relative h-fit z-10 w-full px-3 py-2 pr-10 bg-secondary shadow-md focus:ring outline-primary border-1 border-primary ${className} ${disabled ? 'opacity-50' : ''}`}
+        className={`relative h-fit z-10 w-full px-3 py-2 pr-10 bg-secondary shadow-md focus:ring outline-primary border-1 border-indigo-950 ${className} ${disabled ? 'opacity-50' : ''}`}
       />
     ) : (
       <input
@@ -251,7 +251,7 @@ export function Input({ placeholder, value, preventTab, date, minDate, maxDate, 
         onBlur={onBlur}
         onKeyDown={onKeyDown}
         placeholder={placeholder}
-        className={`relative z-10 w-full p-1 pr-5 bg-secondary shadow-md h-12 focus:ring outline-primary border-1 border-primary ${className} ${disabled ? 'opacity-50' : ''}`}
+        className={`relative z-10 w-full p-1 pr-5 bg-secondary shadow-md h-12 focus:ring outline-primary border-1 border-indigo-950 ${className} ${disabled ? 'opacity-50' : ''}`}
       />
     )
   );
@@ -279,7 +279,7 @@ export function FormInput({ text, textClass, labelClass, date, minDate, maxDate,
           onChange={onChange}
           onBlur={onBlur}
           pattern={pattern}
-          className={`block w-full mt-1 rounded-md text-gray-200 bg-gray-700 border border-gray-800 p-2 focus:ring outline-none ${alertCond ? "ring ring-red-300" : ""} ${className}`}
+          className={`block w-full mt-1 rounded-md text-gray-200 bg-gray-700 border border-gray-800 p-2 focus:ring outline-none ${alertCond ? "ring ring-red-300" : "ring-indigo-600"} ${className}`}
         />
       ) : (
         <input
@@ -292,7 +292,7 @@ export function FormInput({ text, textClass, labelClass, date, minDate, maxDate,
           disabled={disabled}
           onBlur={onBlur}
           pattern={pattern}
-          className={`block w-full mt-1 rounded-md text-gray-200 bg-gray-700 border border-gray-800 p-2 focus:ring outline-none ${alertCond ? "ring ring-red-300" : ""} ${className}`}
+          className={`block w-full mt-1 rounded-md text-gray-200 bg-gray-700 border border-gray-800 p-2 focus:ring outline-none ${alertCond ? "ring ring-red-300" : "ring-indigo-600"} ${className}`}
         />
       )}
       {alertCond && <p className="text-red-400 text-xs mt-1">{alertText}</p>}
@@ -324,7 +324,7 @@ export function Password({ text, textClass, labelClass, required, visibility, in
           spellCheck={false}
           onChange={onChange}
           onBlur={onBlur}
-          className={`block w-full pr-8 mt-1 rounded-md text-gray-300 bg-gray-700 border border-gray-800 p-2 focus:ring outline-none ${alertCond ? "ring ring-red-300" : ""} ${className}`}
+          className={`block w-full pr-8 mt-1 rounded-md text-gray-300 bg-gray-700 border border-gray-800 p-2 focus:ring ring-indigo-600 outline-none ${alertCond ? "ring ring-red-300" : ""} ${className}`}
         />
         <img
           src={visibility ? (showPassword ? eyeSlashed : eye) : ""}

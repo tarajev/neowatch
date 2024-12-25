@@ -59,10 +59,10 @@ export default function Header({ overlayActive, overlayHandler }) {
           <span className="block sm:hidden">
             <BurgerMenu preventTab={overlayActive} icon={iconBurger} listItemArray={null} grouped size={10} />
           </span>
-          <span className="hidden sm:flex items-center border-y-2 border-secondary rounded-md mr-1 py-1 max-w-405">
+          <span className="hidden sm:flex items-center border-y-2 border-gray-400 rounded-md mr-1 py-1 max-w-405">
             {contextUser.id == -1 &&
               <>
-                <Link className='mx-2 color-secondary text-gray-400' preventTab={overlayActive} onClick={handleLoginClick}>
+                <Link className='mx-2 !text-gray-400' preventTab={overlayActive} onClick={handleLoginClick}>
                   Ulogujte se
                 </Link>
               </>
