@@ -4,7 +4,7 @@ import { Page } from '../components/BasicComponents';
 import  '../assets/colors.css'
 import '../assets/animations.css'
 
-export default function DrawSearchDiseases() {
+export default function DrawLandingPage() {
   const { APIUrl, contextUser } = useContext(AuthorizationContext)
   const [search, setSearch] = useState(''); // Za pretragu serija
   const [overlayActive, setOverlayActive] = useState(false); // Potrebno za prevenciju background-tabovanja kada je forma aktivna

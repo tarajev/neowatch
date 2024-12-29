@@ -342,7 +342,7 @@ public class ShowService
              .Match("(u:User {username: $username})-[f:FOLLOWING]->(friend:User)")
              .WithParam("username", username)
              .With("u, friend")
-             .Match("(friend)-[w:WATCHED]->(s:Show)")
+             .Match("(friend)-[w:WATCHED]->(s:Show)") //mozemo da prepravimo na IS_WATCHING
              .Where("NOT (u)-[w:WATCHED]->(s) AND w.rating >= 8")
              .With("s, count(*) AS count") //spaja seriju sa brojem njenih pojavljivanja "u jedan red"
              .OrderByDescending("count")
