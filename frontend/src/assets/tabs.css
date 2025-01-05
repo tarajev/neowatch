@@ -43,7 +43,7 @@
 }
 
 .active-tabs {
-  background-color: rgb(87,0,161);
+  background-color: #5700a1;
   border-bottom: 1px solid transparent;
 }
 
@@ -68,7 +68,7 @@ button {
 }
 
 .content {
-  background:  rgb(30 27 75);
+  background:  #1e1b4b;
   padding: 20px;
   width: 100%;
   height: 100%;

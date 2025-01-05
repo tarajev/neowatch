@@ -86,7 +86,8 @@ public class ShowService
                 genres = showData.Genres.ToList(), //ovo ne vraca jer nije lepo kreirano
                 cast = showData.Actors.ToList(), //izmena sada vraca objekat koji sadrzi glumca i njegovu ulogu 
                 desc = showData.Show.desc,
-                year = showData.Show.year
+                year = showData.Show.year,
+                numberOfSeasons = showData.Show.numberOfSeasons
             };
 
             return show;
@@ -110,9 +111,10 @@ public class ShowService
             .Merge("(s:Show {title: $title})")
             .WithParam("title", show.title) //ovo ce proci iako serija postoji samo ce se dodati zanr prakticno radice kao apdejt onda mozemo to da promenimo ako zelis (promenila)
             .OnCreate()
-            .Set("s.desc = $desc, s.year = $year")
+            .Set("s.desc = $desc, s.year = $year, s.numberOfSeasons = $num")
             .WithParam("desc", show.desc)
-            .WithParam("year", show.year);  //ovde ne dodajem rating jer rating u startu nema, tehnicki 
+            .WithParam("year", show.year)
+            .WithParam("num", show.numberOfSeasons);  //ovde ne dodajem rating jer rating u startu nema, tehnicki 
 
         foreach (var genre in show.genres)  //ako moze nekako pametnije (da se za sve zanrove izvrsi) be my guest
         {
@@ -178,7 +180,8 @@ public class ShowService
                 imageUrl = item.Show.imageUrl,
                 rating = item.Show.rating,
                 genres = item.Genres.ToList(),
-                cast = item.ActedIn.ToList()
+                cast = item.ActedIn.ToList(),
+                numberOfSeasons = item.Show.numberOfSeasons
             };
 
             shows.Add(show);
@@ -187,7 +190,7 @@ public class ShowService
         return shows;
     }
 
-    public async Task<Show?> UpdateShowAsync(Show show, string oldTitle) //RATING NE MOZE DA SE APDEJTUJE ODAVDE (ovo sve rade moderatori) treba da postoji lista serija koju je moguce apdejtovati
+    public async Task<Show?> UpdateShowAsync(Show show, string oldTitle) //RATING NE MOZE DA SE APDEJTUJE ODAVDE (ovo sve rade moderatori) treba da postoji lista serija koju je moguce apdejtovati i mozda sa frontenda samo ako je razlicita vrednost da se prosledi?
     {
         using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
         await client.ConnectAsync();
@@ -215,6 +218,9 @@ public class ShowService
         {
             query = query.Set("s.imageUrl = $imageUrl").WithParam("imageUrl", show.imageUrl);
         }
+
+        if(show.numberOfSeasons > 0)
+            query = query.Set("s.numberOfSeasons = $numSeasons").WithParam("numSeasons", show.numberOfSeasons);
 
         if (show.genres != null && show.genres.Any()) //treba da uradim za izbacivanje zanrova!! ?
         {
