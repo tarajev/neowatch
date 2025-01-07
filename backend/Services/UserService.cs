@@ -35,12 +35,12 @@ public class UserService
         var result = await query.ResultsAsync;
 
         Console.WriteLine($"Found: {result?.FirstOrDefault()?.username}");
-        User? showData = result?.FirstOrDefault();
+        User? user = result?.FirstOrDefault();
 
-        if (showData != null)
-            showData.password = ""; //treba da se hashuje ovo lol 
+        if (user != null)
+            user.password = ""; //treba da se hashuje ovo lol 
 
-        return showData;
+        return user;
     }
 
     public async Task<User?> CreateUserAsync(User user)
@@ -267,6 +267,36 @@ public class UserService
     #region Shows
 
     // TODO da se uradi za serije koje je gledao i koje planira da gleda.
+
+    public async Task<(int WatchedCount, int WatchingCount, int FollowersCount)> GetUserStatsAsync(string username)
+    {
+        using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
+        await client.ConnectAsync();
+
+        var query = client.Cypher
+         .Match("(u:User {username: $username})")
+         .WithParam("username", username)
+         .OptionalMatch("(u)-[:WATCHED]->(w:Show)")
+         .OptionalMatch("(u)-[:WATCHING]->(q:Show)")
+         .OptionalMatch("(u)<-[:FOLLOWS]-(f:User)")
+         // Vraćanje podataka o broju serija i korisnika koji prate
+         .Return((w, q, f) => new
+         {
+             WatchedCount = w.Count(),
+             WatchingCount = q.Count(),
+             FollowersCount = f.Count()
+         });
+
+        var result = await query.ResultsAsync;
+        var data = result.FirstOrDefault();
+
+        Console.WriteLine("DATA:" + data);
+
+        if (data != null)
+            return ((int)data.WatchedCount, (int)data.WatchingCount, (int)data.FollowersCount);
+        
+        return (0,0,0);
+    }
 
     #endregion
 }

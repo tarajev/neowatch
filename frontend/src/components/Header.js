@@ -27,18 +27,17 @@ export default function Header({ overlayActive, overlayHandler }) {
       overlayHandler(!showLogin);
   };
 
-  const logout = () => {
+  const handleLogout = () => {
     contextSetUser({
-      id: -1,
-      name: "",
+      username: "",
       role: "Guest",
       jwtToken: "",
       email: "",
       picture: null,
       bio: ""
     })
-    localStorage.clear();
-    sessionStorage.clear();
+   // localStorage.clear();
+   // sessionStorage.clear();
   }
 
   // TODO - BurgerMenu itemList da se uradi
@@ -48,7 +47,7 @@ export default function Header({ overlayActive, overlayHandler }) {
     <div className={`pt-16 sticky top-0 z-50`}>
       {showLogin && <div className="overlay" onClick={handleLoginClick}></div>}
       {showLogin && <DrawLoginForm showRegistration={showRegistration} exitRegistration={exitRegistration} toggleRegistration={toggleRegistration} handleLoginClick={handleLoginClick} />}
-        <nav className="absolute shadow-xl top-0 left-0 w-full border-b border-black bg-indigo-950 md:flex-row md:flex-nowrap md:justify-start flex items-center p-2">
+      <nav className="absolute shadow-xl top-0 left-0 w-full border-b border-black bg-indigo-950 md:flex-row md:flex-nowrap md:justify-start flex items-center p-2">
         <div className="w-full mx-auto items-center flex justify-between md:flex-nowrap flex-wrap md:px-10 px-2">
           <Link route="/" preventTab={overlayActive}>
             <img
@@ -60,12 +59,16 @@ export default function Header({ overlayActive, overlayHandler }) {
             <BurgerMenu preventTab={overlayActive} icon={iconBurger} listItemArray={null} grouped size={10} />
           </span>
           <span className="hidden sm:flex items-center border-y-2 border-gray-400 rounded-md mr-1 py-1 max-w-405">
-            {contextUser.id == -1 &&
+            {contextUser.role == "Guest" ? (
               <>
                 <Link className='mx-2 !text-gray-400' preventTab={overlayActive} onClick={handleLoginClick}>
-                  Ulogujte se
+                  Log in
                 </Link>
-              </>
+              </>) :(<>
+                <Link className='mx-2 !text-gray-400' preventTab={overlayActive} onClick={handleLogout}>
+                  Log out
+                </Link>
+              </>)
             }
           </span>
         </div>

@@ -4,6 +4,7 @@ using Neo4jClient.Cypher;
 using NeoWatch.Model;
 using NeoWatch.Services;
 
+[Route("Show")]
 [Authorize(Roles = "User,Moderator")]
 public class ShowController : ControllerBase
 {

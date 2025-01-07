@@ -20,7 +20,7 @@ export function DrawRegistration({ onLoginClick, exitRegistration, handleLoginCl
   const [passwordMatch, setPasswordMatch] = useState(true);
   const [invalidEmail, setInvalidEmail] = useState(false);
   const formRef = useRef(null); // Za click van forme
-  
+
   const handleUsernameChange = (e) => {
     setUserName(e.target.value); // Treba regex da se uradi
   }
@@ -68,12 +68,12 @@ export function DrawRegistration({ onLoginClick, exitRegistration, handleLoginCl
   const handleRegisterSubmit = async (event) => {
     event.preventDefault();
 
-    const emailResult = await axios.get(APIUrl + `Authentication/CheckEmail/${email}`);
+    const emailResult = await axios.get(APIUrl + `Auth/CheckEmail/${email}`);
 
     setInvalidEmail(emailResult.data);
 
     if (!emailResult.data) {
-      await axios.post(APIUrl + "Authentication/Register", {
+      await axios.post(APIUrl + "Auth/Register", {
         userName: userName,
         email: email,
         password: password
@@ -177,7 +177,7 @@ export function DrawRegistration({ onLoginClick, exitRegistration, handleLoginCl
 }
 
 export function DrawLogin({ onRegisterClick, handleLoginClick }) {
-  //const { APIUrl, contextUser, contextSetUser } = useContext(AuthorizationContext);
+  const { APIUrl, contextUser, contextSetUser } = useContext(AuthorizationContext);
   const [loginError, setLoginError] = useState("");
   const [email, setEmail] = useState('');
   const [isEmailValid, setIsEmailValid] = useState(true);
@@ -220,8 +220,41 @@ export function DrawLogin({ onRegisterClick, handleLoginClick }) {
 
   const handleLoginSubmit = async (event) => {
     event.preventDefault();
-    
-    // TODO
+    await axios.post(APIUrl + "Auth/Login", {
+      email: email,
+      password: password
+    })
+      .then(request => {
+        let data = { ...request.data };
+
+        var user = {
+          ...data.user,
+          jwtToken: data.jwtToken
+        };
+
+        delete user.password;
+
+        contextSetUser(user);
+
+        var now = new Date();
+        now.setHours(now.getHours() + 6);
+
+        if (rememberLogin) {
+          localStorage.setItem('NeowatchUser', JSON.stringify(user));
+          localStorage.setItem('NeoWatchExpiryDate', now);
+        }
+        else {
+          sessionStorage.setItem('AptusMedicaUser', JSON.stringify(user));
+          sessionStorage.setItem('AptusMedicaExpiryDate', now);
+        }
+
+        localStorage.setItem('AptusMedicaRememberLogin', rememberLogin);
+        handleLoginClick();
+      })
+      .catch(error => {
+        console.log(error);
+        setLoginError("Pogrešan E-Mail ili šifra!");
+      })
   }
 
   const validateEmail = (email) => {

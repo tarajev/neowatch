@@ -10,6 +10,11 @@ public class User {
     public string? picture { get; set; }
     public string? bio { get; set; }
     public required string role {get; set;}  //moramo da čuvamo i ovo
+
+    //ovo se ne čuva 
+    public long seriesWatchedCount { get; set; } 
+    public long currentlyWatchingCount { get; set; }
+    public long followersCount { get; set; }
     
     // JsonIgnore za Swagger
     [JsonIgnore] public List<User> following { get; set; } = [];

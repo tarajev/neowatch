@@ -15,7 +15,7 @@ export default function ShowInfo({ show, handleExitClick }) {
 
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 ">
-            <div className="bg-[#5700a2] rounded-lg shadow-lg p-6 max-w-lg w-fit h-auto relative grid">
+            <div className="bg-[#5700a2] rounded-lg shadow-lg p-6 max-w-lg w-fit h-auto relative grid"> {/* mozda gradient background? */}
                 <Exit
                     blue
                     className="absolute top-3 right-3 text-sm w-4 cursor-pointer"

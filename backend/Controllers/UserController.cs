@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using NeoWatch.Model;
 using NeoWatch.Services;
 
+[Route("User")]
 [Authorize(Roles = "User,Moderator")]
 public class UserController : ControllerBase
 {
@@ -17,7 +18,7 @@ public class UserController : ControllerBase
 
     [AllowAnonymous]
     [HttpGet("GetAllUsers")]
-    public async Task<IActionResult> GetUserByUsername()
+    public async Task<IActionResult> GetAllUsers()
     {
         var users = await _userService.GetAllUsersAsync();
         return Ok(users);
@@ -97,7 +98,7 @@ public class UserController : ControllerBase
         bool followed = await _userService.FollowUserAsync(username, userToFollow);
         return Ok($"Korisnik je {(followed ? "uspešno" : "neuspešno")} zapraćen.");
     }
-    
+
     [HttpPut("UnfollowUser")]
     public async Task<IActionResult> UnfollowUser(string username, string userToUnfollow)
     {
@@ -109,7 +110,19 @@ public class UserController : ControllerBase
 
     #region Shows
 
-    
+
+    [HttpGet("GetUserStats/{username}")]
+    public async Task<IActionResult> GetUserStats(string username)
+    {
+        var data = await _userService.GetUserStatsAsync(username);
+        return Ok(new
+        {
+            data.WatchedCount,
+            data.WatchingCount,
+            data.FollowersCount
+        });
+    }
+
 
     #endregion
 }
