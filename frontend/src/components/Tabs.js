@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import '../assets/tabs.css';
 
-export default function Tabs({ preventTab, DrawTab1}) {
+export default function Tabs({ preventTab, DrawTab1, DrawTab2}) {
     const [toggleState, setToggleState] = useState(1);
 
     const toggleTab = (index) => {
@@ -32,7 +32,7 @@ export default function Tabs({ preventTab, DrawTab1}) {
                 </div>
 
                 <div className={toggleState === 2 ? "content  active-content" : "content"}>
-                  {/*  <DrawTab2 /> */}
+                    <DrawTab2 />
                 </div>
             </div>
         </div>

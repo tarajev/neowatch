@@ -1,0 +1,234 @@
+import React, { useState, useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'
+import { useDebounce } from 'use-debounce';
+import { Page, Input, Link } from '../components/BasicComponents';
+import axios from 'axios';
+import qs from 'qs';
+import AuthorizationContext from '../context/AuthorizationContext';
+import '../assets/colors.css'
+import '../assets/animations.css'
+import Select from "react-select";
+
+export default function DrawSearchTvShows() {
+  const { APIUrl, contextUser } = useContext(AuthorizationContext);
+  const navigate = useNavigate();
+  const [search, setSearch] = useState('');
+  const [searched, setSearched] = useState(false);
+  const [debouncedSearch] = useDebounce(search, 300);
+  //const [tvShows, setTvShows] = useState(null);
+  const [keyDown, setKeyDown] = useState(false);
+  const [notFound, setNotFound] = useState(false);
+  const [mostWatchedShows, setMostWatchedShows] = useState(null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedGenres, setSelectedGenres] = useState([]);
+  const [currentSeries, setCurrentSeries] = useState([]);
+  const seriesPerPage = 8; // Broj serija po stranici
+
+  const [showsByGenre, setShowsByGenre] = useState(null);
+  const [showsByName, setShowsByName] = useState(null);
+  const [filteredShows, setFilteredShows] = useState(false); //samo true/false
+
+  //privremeno
+  const genres = ["Crime", "Drama", "Thriller", "Fantasy", "Horror", "Biography", "History", "Action", "Adventure", "Comedy", "Romance"];
+
+  const genreOptions = genres.map((genre) => ({ value: genre, label: genre }));
+
+
+  const handleDropdownChange = (selectedOptions) => {
+    setSelectedGenres(selectedOptions ? selectedOptions.map((option) => option.value) : []);
+  };
+
+  /*
+  const tvShows = [ //privremeno naravno
+    { id: 1, title: "Breaking Bad", image: breakingBadImage, numberOfSeasons: 5, rating: 9.5, cast: ["Bryan Cranston", "Aaron Paul", "Anna Gunn"], genres: ["Crime", "Drama", "Thriller"], desc: "A high school chemistry teacher turned methamphetamine producer partners with a former student to build a drug empire.", year: 2008 },
+    { id: 2, title: "Stranger Things", image: strangerThingsImage, numberOfSeasons: 4, rating: 8.7, cast: ["Winona Ryder", "David Harbour", "Finn Wolfhard", "Winona Ryder", "David Harbour", "Finn Wolfhard"], genres: ["Drama", "Fantasy", "Horror"], desc: "A group of kids in a small town uncover supernatural events while searching for their missing friend.", year: 2016 },
+    { id: 3, title: "The Crown", image: theCrownImage, numberOfSeasons: 6, rating: 8.6, cast: ["Claire Foy", "Olivia Colman", "Matt Smith"], genres: ["Biography", "Drama", "History"], desc: "The story of Queen Elizabeth II's reign, from her early years on the throne to present day.", year: 2016 },
+    { id: 4, title: "The Witcher", image: theWitcherImage, numberOfSeasons: 3, rating: 8.1, cast: ["Henry Cavill", "Anya Chalotra", "Freya Allan"], genres: ["Action", "Adventure", "Drama"], desc: "A mutated monster hunter, Geralt of Rivia, struggles to find his place in a world where people often prove more wicked than beasts.", year: 2019 },
+    { id: 5, title: "Friends", image: friendsImage, numberOfSeasons: 10, rating: 8.8, cast: ["Jennifer Aniston", "Courteney Cox", "Lisa Kudrow"], genres: ["Comedy", "Romance"], desc: "Six friends navigate life and love in New York City, sharing laughter, heartbreak, and a lot of coffee.", year: 1994 }
+  ];
+*/
+
+  useEffect(() => {
+    if (mostWatchedShows == null) {
+      findMostWatchedShows();
+    }
+    if (mostWatchedShows && currentSeries == null) {
+      setCurrentSeries(mostWatchedShows);
+    }
+  }, [currentSeries, mostWatchedShows]);
+
+  useEffect(() => {
+    const filteredShows = (showsByName && showsByGenre) 
+      ? showsByName.filter(showByName => 
+          showsByGenre.some(showByGenre => showByName.title === showByGenre.title)
+        )
+      : showsByName || showsByGenre; // Ako je samo jedno prisutno, koristi ga
+    if (filteredShows) {
+      const indexOfLastSeries = currentPage * seriesPerPage;
+      const indexOfFirstSeries = indexOfLastSeries - seriesPerPage;
+      setCurrentSeries(filteredShows.slice(indexOfFirstSeries, indexOfLastSeries));
+      setFilteredShows(true);
+    }
+    else{
+     setCurrentSeries(mostWatchedShows);
+     setFilteredShows(false);
+    }
+  
+    console.log(currentSeries);
+  }, [showsByGenre, showsByName, currentPage]);
+
+  const handleTvShowClick = () => {
+
+  };
+
+  const handleKeyDown = async (e) => {
+    if (e.key === 'Enter') {
+      if (search.trim() === "") { 
+        setShowsByName(null);
+        return; 
+      }
+      searchTvShowsByName(search);
+    }
+  };
+
+  const searchTvShowsByGenre = async (genres) => {
+    try {
+      const result = await axios.get(`${APIUrl}Show/SearchShowsByGenre`, {
+        params: { genres },
+        paramsSerializer: params => qs.stringify(params, { arrayFormat: 'repeat' }),
+      });
+      setShowsByGenre(result.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const findMostWatchedShows = async () => {
+    try {
+      const result = await axios.get(`${APIUrl}Show/GetMostWatchedShows`);
+      setMostWatchedShows(result.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const searchTvShowsByName = async (query) => {
+    try {
+      const result = await axios.get(`${APIUrl}Show/SearchShowByTitle/${query}`);
+      setShowsByName(result.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  /*useEffect(() => {
+    if (search === "") {
+      setTimeout(() => {
+        // setTvShows(null);
+        setSearched(false);
+      }, 350); // Mora sa timeout-om vecim nego debouncedSearch jer ce se searched vratiti na true
+    }
+  }, [search]) */
+
+  useEffect(() => {
+    if (selectedGenres != null && selectedGenres.length > 0) {
+      searchTvShowsByGenre(selectedGenres);
+    }
+    else
+      setShowsByGenre(null);
+  }, [selectedGenres])
+
+  return (
+    <div className="bg-gradient-to-tl from-violet-800 to-purple-900 rounded-2xl min-h-full"> {/*br-sky-50 */}
+      <div className='grid grid-cols-8 h-fit auto-rows-auto'>
+        <div className="shadow-sm grid w-full col-span-8 border-violet-800 border-4  rounded-2xl mb-1 ">
+          <Input
+            placeholder='Search'
+            value={search}
+            className="rounded-xl pl-4 text-white"
+            onChange={(e) => { setSearch(e.target.value) }}
+            onKeyDown={handleKeyDown}
+          />   
+          {/*{(currentSeries && filteredShows==false) && ((currentSeries ? (currentSeries.length == 0 ? true : false) : false) || notFound) && <p className='p-2 text-gray-500 text-sm bg-transparent'>No Series found that match the criteria.</p>}*/}
+        </div>
+        <div className='col-span-8 mb-2'>
+          <Select
+            id="genreDropdown"
+            options={genreOptions}
+            isMulti
+            value={genreOptions.filter((option) => selectedGenres.includes(option.value))}
+            onChange={handleDropdownChange}
+            placeholder="Choose genres..."
+            className="border-violet-800 border-4 rounded-2xl"
+            styles={{
+              control: (provided, state) => ({
+                ...provided,
+                borderRadius: "0.5rem",
+                border: "#5b21b6",
+                backgroundColor: "#111827",
+                width: "100%"
+              }),
+              option: (provided, state) => ({
+                ...provided,
+                "&:hover": {
+                  backgroundColor: "#5b21b6",
+                },
+              }),
+              multiValue: (provided) => ({
+                ...provided,
+                backgroundColor: "#5b21b6", // Pozadina taga
+              }),
+              multiValueLabel: (provided) => ({
+                ...provided,
+                color: "white", // Tekst taga
+              }),
+            }}
+          />
+        </div>
+      </div>
+      <div className='  mx-4 grid gap-6 grid-cols-12 h-fit auto-rows-auto mb-2'>
+        {currentSeries && currentSeries.map((tvShow, index) => (
+          <div
+            key={tvShow.id + "_" + index}
+            className="relative grid col-span-12 md:col-span-3 sm:col-span-4 place-items-center cursor-pointer drop-shadow-[0_5px_5px_rgba(0,0,0,0.55)] transition ease-in-out delay-150"
+            onClick={() => handleTvShowClick(tvShow.id)}
+          >
+            <img
+              src={`/images/${tvShow.imageUrl}`} //kako se čuvaju slike treba srediti
+              className="w-full h-full object-cover rounded-lg transition duration-300 ease-in-out"
+            />
+            <div className="absolute inset-0 bg-black bg-opacity-60 opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-lg flex items-center justify-center">
+              <div className="text-center text-white font-semibold">
+                <div className="text-lg">{tvShow.title}</div>
+                <div className="text-sm">{tvShow.year}</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="flex justify-center items-center mt-3 mb-1 space-x-4">
+        <button
+          onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+          disabled={currentPage === 1}
+          className="w-6 h-6 color-button flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-full transition duration-200 disabled:opacity-50"
+        >
+          <span className="text-white">&larr;</span> {/* Strelica levo */}
+        </button>
+        <span className="text-black-700 text-lg">
+          {currentPage} / {Math.ceil(currentSeries ? currentSeries.length : 1 / seriesPerPage)} {/* OVDE DA SE ZAMENI SA CELOKUPNIM SEARCHOM  */}
+        </span>
+        <button
+          onClick={() =>
+            setCurrentPage((prev) => Math.min(prev + 1, Math.ceil(currentSeries ? currentSeries.length : 1 / seriesPerPage)))
+          }
+          disabled={currentPage === Math.ceil(currentSeries ? currentSeries.length : 1 / seriesPerPage)}
+          className="w-6 h-6 color-button flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-full transition duration-200 disabled:opacity-50"
+        >
+          <span className="text-white">&rarr;</span> {/* Strelica desno */}
+        </button>
+      </div>
+
+    </div>
+  );
+}

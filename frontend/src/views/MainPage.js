@@ -7,6 +7,7 @@ import '../assets/colors.css'
 import '../assets/animations.css'
 import DrawRecommendationsPage from './RecommendationsPage'
 import profilePhoto from "../images/profilepicture.jpg";
+import DrawSearchTvShows from './Search';
 
 export default function DrawMainPage() {
   const { APIUrl, contextUser } = useContext(AuthorizationContext)
@@ -45,7 +46,7 @@ export default function DrawMainPage() {
     <Page overlayActive={overlayActive} loading={true} overlayHandler={setOverlayActive}>
       <div className=' grid gap-4 grid-cols-4  h-fit auto-rows-auto '>
         <div className=' col-span-3 grid grid-cols-2 w-full mb-2 '>
-          <Tabs preventTab={overlayActive} DrawTab1={() => <DrawRecommendationsPage />}>
+          <Tabs preventTab={overlayActive} DrawTab1={() =><DrawSearchTvShows/> } DrawTab2={()=> <DrawRecommendationsPage/>}>
           </Tabs>
         </div>
         <div className=' col-span 1 col-start 3'>

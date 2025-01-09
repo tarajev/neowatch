@@ -109,7 +109,7 @@ public class ShowController : ControllerBase
 
     [AllowAnonymous]
     [HttpGet("SearchShowsByGenre")]
-    public async Task<IActionResult> SearchShowByGenre(List<string> genres)
+    public async Task<IActionResult> SearchShowByGenre([FromQuery] List<string> genres)
     {
         var shows = await _showService.SearchShowsByGenre(genres);
         if (shows.Count == 0)
@@ -128,4 +128,23 @@ public class ShowController : ControllerBase
     }
 
 
+    [AllowAnonymous]
+    [HttpGet("GetMostWatchedShows")]
+    public async Task<IActionResult> GetMostedWatchedShows()
+    {
+        var shows = await _showService.FindMostWatchedShows();
+        if (shows.Count == 0)
+            return BadRequest("Nije pronadjena nijedna serija");
+        return Ok(shows);
+    }
+
+    [AllowAnonymous]
+    [HttpGet("SearchShowByTitle/{search}")]
+    public async Task<IActionResult> SearchShowByTitle(string search)
+    {
+        var shows = await _showService.SearchShowsByTitle(search);
+        if (shows.Count == 0)
+            return BadRequest("Nije pronadjena nijedna serija");
+        return Ok(shows);
+    }
 }

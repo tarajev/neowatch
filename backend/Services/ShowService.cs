@@ -219,7 +219,7 @@ public class ShowService
             query = query.Set("s.imageUrl = $imageUrl").WithParam("imageUrl", show.imageUrl);
         }
 
-        if(show.numberOfSeasons > 0)
+        if (show.numberOfSeasons > 0)
             query = query.Set("s.numberOfSeasons = $numSeasons").WithParam("numSeasons", show.numberOfSeasons);
 
         if (show.genres != null && show.genres.Any()) //treba da uradim za izbacivanje zanrova!! ?
@@ -405,6 +405,45 @@ public class ShowService
 
         return result.ToList();
     }
+
+    public async Task<List<Show>> FindMostWatchedShows()
+    {
+
+        using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
+        await client.ConnectAsync();
+
+        var query = client.Cypher
+            .Match("(u:User)-[r:WATCHED|WATCHING]->(s:Show)")
+            .With("s, count(r) AS count")
+            .OrderByDescending("count") 
+            .Limit(40)
+            .Return(s => s.As<Show>()); 
+
+        var result = await query.ResultsAsync;
+
+        return result.ToList();
+    }
+
+    public async Task<List<Show>> SearchShowsByTitle(string search)
+    {
+
+        using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
+        await client.ConnectAsync();
+
+        var query = client.Cypher
+            .Match("(s:Show)")
+            .Where("TOLOWER(s.title) CONTAINS TOLOWER($search)")
+            .WithParam("search", search)
+            //.Limit(40)
+            .Return(s => s.As<Show>()); 
+
+        var result = await query.ResultsAsync;
+
+        return result.ToList();
+    }
+
+
+
 
     /*
         public async Task<List<Show>> SearchShowsAsync(string query)
