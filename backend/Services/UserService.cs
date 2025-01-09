@@ -266,7 +266,191 @@ public class UserService
 
     #region Shows
 
-    // TODO da se uradi za serije koje je gledao i koje planira da gleda.
+    public async Task<List<Show>?> GetShowsToWatchAsync(string username)
+    {
+        using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
+        await client.ConnectAsync();
+
+        var userExists = await client.Cypher
+            .Match("(u:User {username: $username})")
+            .WithParam("username", username)
+            .Return(u => u.As<User>())
+            .ResultsAsync;
+
+        if (!userExists.Any())
+        {
+            Console.WriteLine("No user with the given username found.");
+            return null;
+        }
+
+        var shows = await client.Cypher
+            .Match("(u:User {username: $username})-[:YET_TO_WATCH]->(s:Show)")
+            .WithParam("username", username)
+            .Return(s => s.As<Show>())
+            .ResultsAsync;
+
+        if (shows.Any())
+            Console.WriteLine($"Successfully found {shows.Count()} shows to watch of user {username}");
+        else
+            Console.WriteLine($"User {username} exists but has no shows to watch.");
+
+        return shows.ToList();
+    }
+
+    public async Task<List<Show>?> GetShowsWatchedAsync(string username)
+    {
+        using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
+        await client.ConnectAsync();
+
+        var userExists = await client.Cypher
+            .Match("(u:User {username: $username})")
+            .WithParam("username", username)
+            .Return(u => u.As<User>())
+            .ResultsAsync;
+
+        if (!userExists.Any())
+        {
+            Console.WriteLine("No user with the given username found.");
+            return null;
+        }
+
+        var shows = await client.Cypher
+            .Match("(u:User {username: $username})-[:WATCHED]->(s:Show)")
+            .WithParam("username", username)
+            .Return(s => s.As<Show>())
+            .ResultsAsync;
+
+        if (shows.Any())
+            Console.WriteLine($"Successfully found {shows.Count()} shows watched of user {username}");
+        else
+            Console.WriteLine($"User {username} exists but has no shows watched.");
+
+        return shows.ToList();
+    }
+
+    public async Task<List<Show>?> GetShowsWatchingAsync(string username)
+    {
+        using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
+        await client.ConnectAsync();
+
+        var userExists = await client.Cypher
+            .Match("(u:User {username: $username})")
+            .WithParam("username", username)
+            .Return(u => u.As<User>())
+            .ResultsAsync;
+
+        if (!userExists.Any())
+        {
+            Console.WriteLine("No user with the given username found.");
+            return null;
+        }
+
+        var shows = await client.Cypher
+            .Match("(u:User {username: $username})-[:WATCHING]->(s:Show)")
+            .WithParam("username", username)
+            .Return(s => s.As<Show>())
+            .ResultsAsync;
+
+        if (shows.Any())
+            Console.WriteLine($"Successfully found {shows.Count()} shows watching of user {username}");
+        else
+            Console.WriteLine($"User {username} exists but has no shows watching.");
+
+        return shows.ToList();
+    }
+
+    public async Task<bool?> AddShowToWatchAsync(string username, string showTitle)
+    {
+        using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
+        await client.ConnectAsync();
+
+        var result = await client.Cypher
+            .Match("(u:User {username: $username}), (s:Show {title: $showTitle})")
+            .WithParams(new
+            {
+                username,
+                showTitle
+            })
+            .OptionalMatch("(u)-[r:WATCHED|WATCHING]->(s)")
+            .Delete("r")
+            .Merge("(u)-[:YET_TO_WATCH]->(s)")
+            .Return(s => s.As<Show>())
+            .ResultsAsync;
+
+        if (result.Any())
+        {
+            Console.WriteLine($"User {username} added {showTitle} to watchlist.");
+            return true;
+        }
+        else
+        {
+            Console.WriteLine("No user or show with given title exists.");
+            return false;
+        }
+    }
+
+    // Treba da se iskoristi Watched klasa a ne Show klasa?
+    public async Task<bool?> AddShowWatchedAsync(string username, string showTitle)
+    {
+        using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
+        await client.ConnectAsync();
+
+        var result = await client.Cypher
+            .Match("(u:User {username: $username}), (s:Show {title: $showTitle})")
+            .WithParams(new
+            {
+                username,
+                showTitle
+            })
+            .OptionalMatch("(u)-[r:YET_TO_WATCH|WATCHING]->(s)")
+            .Delete("r")
+            .Merge("(u)-[:WATCHED]->(s)")
+            .Return(s => s.As<Show>())
+            .ResultsAsync;
+
+        if (result.Any())
+        {
+            Console.WriteLine($"User {username} added {showTitle} to watched list.");
+            return true;
+        }
+        else
+        {
+            Console.WriteLine("No user or show with given title exists.");
+            return false;
+        }
+    }
+
+    public async Task<bool?> AddShowWatchingAsync(string username, string showTitle)
+    {
+        using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
+        await client.ConnectAsync();
+
+        var result = await client.Cypher
+            .Match("(u:User {username: $username}), (s:Show {title: $showTitle})")
+            .WithParams(new
+            {
+                username,
+                showTitle
+            })
+            .OptionalMatch("(u)-[r:YET_TO_WATCH|WATCHED]->(s)")
+            .Delete("r")
+            .Merge("(u)-[:WATCHING]->(s)")
+            .Return(s => s.As<Show>())
+            .ResultsAsync;
+
+        if (result.Any())
+        {
+            Console.WriteLine($"User {username} added {showTitle} to watching list.");
+            return true;
+        }
+        else
+        {
+            Console.WriteLine("No user or show with given title exists.");
+            return false;
+        }
+    }
+
+    #endregion
 
     public async Task<(int WatchedCount, int WatchingCount, int FollowersCount)> GetUserStatsAsync(string username)
     {
@@ -297,6 +481,4 @@ public class UserService
         
         return (0,0,0);
     }
-
-    #endregion
 }

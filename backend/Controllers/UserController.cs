@@ -110,6 +110,73 @@ public class UserController : ControllerBase
 
     #region Shows
 
+    [HttpGet("GetShowsToWatch")]
+    public async Task<IActionResult> GetShowsToWatch(string username)
+    {
+        var shows = await _userService.GetShowsToWatchAsync(username);
+
+        if (shows != null)
+            return Ok(shows);
+        else
+            return BadRequest("Korisnik sa zadatim korisničkim imenom ne postoji.");
+    }
+
+    [HttpGet("GetShowsWatched")]
+    public async Task<IActionResult> GetShowsWatched(string username)
+    {
+        var shows = await _userService.GetShowsWatchedAsync(username);
+
+        if (shows != null)
+            return Ok(shows);
+        else
+            return BadRequest("Korisnik sa zadatim korisničkim imenom ne postoji.");
+    }
+
+    [HttpGet("GetShowsWatching")]
+    public async Task<IActionResult> GetShowsWatching(string username)
+    {
+        var shows = await _userService.GetShowsWatchingAsync(username);
+
+        if (shows != null)
+            return Ok(shows);
+        else
+            return BadRequest("Korisnik sa zadatim korisničkim imenom ne postoji.");
+    }
+
+    [HttpPut("AddShowToWatch")]
+    public async Task<IActionResult> AddShowToWatch(string username, string showTitle)
+    {
+        bool? added = await _userService.AddShowToWatchAsync(username, showTitle);
+
+        if (added == null)
+            return BadRequest("Korisnik ili serija sa zadatim imenom ne postoji.");
+        else
+            return Ok($"{(added == true ? "Uspešno" : "Neuspešno")} dodata serija {showTitle} korisniku {username} u listi koju korisnik planira da gleda.");
+    }
+
+    [HttpPut("AddShowWatched")]
+    public async Task<IActionResult> AddShowWatched(string username, string showTitle)
+    {
+        bool? added = await _userService.AddShowWatchedAsync(username, showTitle);
+
+        if (added == null)
+            return BadRequest("Korisnik ili serija sa zadatim imenom ne postoji.");
+        else
+            return Ok($"{(added == true ? "Uspešno" : "Neuspešno")} dodata serija {showTitle} korisniku {username} u listu koju je korisnik odgledao.");
+    }
+
+    [HttpPut("AddShowWatching")]
+    public async Task<IActionResult> AddShowWatching(string username, string showTitle)
+    {
+        bool? added = await _userService.AddShowWatchingAsync(username, showTitle);
+
+        if (added == null)
+            return BadRequest("Korisnik ili serija sa zadatim imenom ne postoji.");
+        else
+            return Ok($"{(added == true ? "Uspešno" : "Neuspešno")} dodata serija {showTitle} korisniku {username} u listi koju je korisnik odgledao.");
+    }
+
+    #endregion
 
     [HttpGet("GetUserStats/{username}")]
     public async Task<IActionResult> GetUserStats(string username)
@@ -122,7 +189,4 @@ public class UserController : ControllerBase
             data.FollowersCount
         });
     }
-
-
-    #endregion
 }

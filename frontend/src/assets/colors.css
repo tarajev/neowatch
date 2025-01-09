@@ -1,17 +1,9 @@
-.bg-primary {
-  background-color: #5700a2;
-}
-
 .star-rating {
   filter: invert(76%) sepia(42%) saturate(2377%) hue-rotate(359deg) brightness(101%) contrast(104%);
 }
 
-.filter-primary {
-  filter: invert(76%) sepia(37%) saturate(5404%) hue-rotate(164deg) brightness(91%) contrast(92%);
-}
-
-.filter-secondary {
-  filter: invert(76%) sepia(37%) saturate(5404%) hue-rotate(164deg) brightness(80%) contrast(92%);
+.filter-indigo {
+  filter: brightness(0) saturate(100%) invert(14%) sepia(81%) saturate(5862%) hue-rotate(277deg) brightness(62%) contrast(144%);
 }
 
 .filter-gray {
@@ -26,27 +18,15 @@
   box-shadow: 0 0 6px 3px #301448 !important;
 }
 
-.table-color-row {
-  background-color: rgb(245, 255, 255);
-}
-
-.bg-secondary {
-  background-color: black;
-}
-
-.bg-accent {
-  background-color: red;
-}
-
-.outline-primary {
+.outline-indigo {
   outline-color: #5700a2;
 }
 
-.outline-primary:hover {
+.outline-indigo:hover {
   outline-color: #7832b4;
 }
 
-.outline-primary:focus {
+.outline-indigo:focus {
   outline-color: #7832b4;
 }
 

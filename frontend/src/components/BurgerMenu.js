@@ -31,7 +31,7 @@ export default function BurgerMenu({ preventTab, icon, filter, size, xOffset, yO
     <div ref={formRef} className={`w-fit inline-flex${className}`}>
       <a
         tabIndex={preventTab ? -1 : 0}
-        className='outline-primary p-1 flex items-center'
+        className='outline-indigo p-1 flex items-center'
         href="#"
         onClick={toggleBurgerClicked}
       >
@@ -39,13 +39,13 @@ export default function BurgerMenu({ preventTab, icon, filter, size, xOffset, yO
           <img
             tabIndex={-1}
             src={icon}
-            className={`h-${size} w-${size} outline-none ${filter ? 'filter-primary' : ''}`}
+            className={`h-${size} w-${size} outline-none ${filter ? 'filter-indigo' : ''}`}
           />
         </Tooltip>
       </a>
       {listItemArray && burgerClicked && (
         <div
-          className={`absolute -translate-x-36 sm:translate-x-0 z-20 py-1 w-48 bg-primary rounded-md shadow-xl fade-in`}
+          className={`absolute -translate-x-36 sm:translate-x-0 z-20 py-1 w-48 bg-indigo-600 rounded-md shadow-xl fade-in`}
           style={{ marginTop: `${yOffset * 4}px`, marginLeft: `${xOffset}px` }}
         >
           {grouped

@@ -7,7 +7,7 @@ using NeoWatch.Model;
 namespace NeoWatch.Services;
 public class ActorService
 {
-    public async Task<Actor> GetActorByNameAsync(string name)
+    public async Task<Actor?> GetActorByNameAsync(string name)
     {
         using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
         await client.ConnectAsync();

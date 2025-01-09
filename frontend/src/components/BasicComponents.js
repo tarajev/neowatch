@@ -235,7 +235,7 @@ export function Input({ placeholder, value, preventTab, date, minDate, maxDate, 
         onBlur={onBlur}
         onKeyDown={onKeyDown}
         placeholder={placeholder}
-        className={`relative h-fit z-10 w-full px-3 py-2 pr-10 bg-secondary shadow-md focus:ring outline-primary border-1 border-indigo-950 ${className} ${disabled ? 'opacity-50' : ''}`}
+        className={`relative h-fit z-10 w-full px-3 py-2 pr-10 bg-gray-900 shadow-md focus:ring outline-indigo border-1 border-indigo-950 ${className} ${disabled ? 'opacity-50' : ''}`}
       />
     ) : (
       <input
@@ -251,7 +251,7 @@ export function Input({ placeholder, value, preventTab, date, minDate, maxDate, 
         onBlur={onBlur}
         onKeyDown={onKeyDown}
         placeholder={placeholder}
-        className={`relative z-10 w-full p-1 pr-5 bg-secondary shadow-md h-12 focus:ring outline-primary border-1 border-indigo-950 ${className} ${disabled ? 'opacity-50' : ''}`}
+        className={`relative z-10 w-full p-1 pr-5 bg-gray-900 shadow-md h-12 focus:ring outline-indigo border-1 border-indigo-950 ${className} ${disabled ? 'opacity-50' : ''}`}
       />
     )
   );
