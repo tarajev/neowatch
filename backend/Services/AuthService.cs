@@ -41,7 +41,7 @@ public class AuthService
         return token;
     }
 
-    public static async Task<bool> CheckEmail(string email)
+    public static async Task<int> CheckEmail(string email)
     {
         using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
         await client.ConnectAsync();
@@ -49,11 +49,11 @@ public class AuthService
         var query = client.Cypher
             .Match("(u:User {email: $email})")
             .WithParam("email", email)
-            .Return(u => u.Count() > 0);
+            .Return(u => u.Count());
 
-        // Rezultat vraća true ako postoji čvor sa zadatim emailom
+        //probala sam sa u.Count() > 0 pa da vraća true/false ali ne moze tkd sad je 0/1
         var result = await query.ResultsAsync;
-        return result.FirstOrDefault();
+        return (int)result.FirstOrDefault();
     }
 
     public static async Task<User?> GetUserByEmailAsync(string email) //mozemo da prebacimo i u User-a ali se koristi samo kod logovanja

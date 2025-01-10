@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Authentication.OAuth.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -39,7 +40,9 @@ public class AuthController : ControllerBase
         var user = await _userService.GetUserAsync(request.Username);
         var checkEmail = await AuthService.CheckEmail(request.Email);
 
-        if (user == null && !checkEmail)
+        Console.WriteLine("checkEmail result:" + checkEmail);
+
+        if (user == null && checkEmail == 0)
         {
             var newUser = new User
             {
@@ -53,8 +56,8 @@ public class AuthController : ControllerBase
             var result = await _userService.CreateUserAsync(newUser);
             if (result != null)
             {
-                var token = AuthService.GenerateJwtToken(_configuration, newUser);
-                return Ok(new { Message = "Korisnik je uspešno kreiran.", Token = token });
+               // var token = AuthService.GenerateJwtToken(_configuration, newUser);  //token nam treba samo ako cemo odmah i login
+                return Ok(new { Message = "Korisnik je uspešno kreiran.",/* Token = token */});
             }
             return BadRequest("Došlo je do greške pri kreiranju korisnika");
         }
@@ -62,6 +65,16 @@ public class AuthController : ControllerBase
         return BadRequest("Ovaj korisnik već postoji.");
     }
 
+    [HttpGet("CheckEmail/{email}")]
+    public async Task<IActionResult> CheckEmail(string email){
+
+        var checkEmail = await AuthService.CheckEmail(email);
+        Console.WriteLine("CheckEmail" + checkEmail.ToString());
+        if (checkEmail == 0)
+            return Ok(checkEmail);
+        else //email je u upotrebi
+            return Ok(checkEmail); 
+    }
 }
 
 public class LoginRequest //ovo premestiti negde?

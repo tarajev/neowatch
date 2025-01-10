@@ -19,9 +19,11 @@ export function DrawRegistration({ onLoginClick, exitRegistration, handleLoginCl
   const [passwordTouched, setPasswordTouched] = useState(false);
   const [passwordMatch, setPasswordMatch] = useState(true);
   const [invalidEmail, setInvalidEmail] = useState(false);
+  const [invalidUsername, setInvalidUsername] = useState(false);
   const formRef = useRef(null); // Za click van forme
 
   const handleUsernameChange = (e) => {
+    setInvalidUsername(false);
     setUserName(e.target.value); // Treba regex da se uradi
   }
 
@@ -69,24 +71,22 @@ export function DrawRegistration({ onLoginClick, exitRegistration, handleLoginCl
     event.preventDefault();
 
     const emailResult = await axios.get(APIUrl + `Auth/CheckEmail/${email}`);
+    setInvalidEmail(emailResult.data === 0 ? false : true);
+    
+    const usernameResult = await axios.get(APIUrl +`User/GetUserByUsername/${userName}`);
+    setInvalidUsername(usernameResult.data ? true : false);
 
-    setInvalidEmail(emailResult.data);
-
-    if (!emailResult.data) {
+    if (!emailResult.data && !usernameResult.data) {
       await axios.post(APIUrl + "Auth/Register", {
         userName: userName,
         email: email,
         password: password
       })
         .then(response => {
-          response.json()
-        })
-        .then(response => {
           console.log(response);
+          exitRegistration();
         })
-        .catch(err => console.log(err));
-
-      exitRegistration();
+        .catch(err => console.log(err)); //ovde ako dodje do greške da se ispiše da se pokuša ponovo ili tako nesto
     }
   }
 
@@ -126,6 +126,8 @@ export function DrawRegistration({ onLoginClick, exitRegistration, handleLoginCl
               required
               value={userName}
               onChange={handleUsernameChange}
+              alertCond={invalidUsername}
+              alertText={invalidUsername && "Username already exists"}
             />
             <FormInput
               text="EMail"
@@ -135,7 +137,7 @@ export function DrawRegistration({ onLoginClick, exitRegistration, handleLoginCl
               onBlur={handleEmailBlur}
               onChange={handleEmailChange}
               alertCond={(!isEmailValid && emailTouched) || invalidEmail}
-              alertText={invalidEmail ? "Email je već u upotrebi!" : "Neispravan email format!"}
+              alertText={invalidEmail ? "Email je već u upotrebi!" : "Neispravan email format!"} 
             />
             <Password
               text="Šifra"

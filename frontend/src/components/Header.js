@@ -36,8 +36,8 @@ export default function Header({ overlayActive, overlayHandler }) {
       picture: null,
       bio: ""
     })
-   // localStorage.clear();
-   // sessionStorage.clear();
+    localStorage.clear();
+    sessionStorage.clear();
   }
 
   // TODO - BurgerMenu itemList da se uradi
