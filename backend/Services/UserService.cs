@@ -364,14 +364,25 @@ public class UserService
         using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
         await client.ConnectAsync();
 
+        // Proveravamo da li postoji review za seriju
+        var hasReview = await client.Cypher
+            .Match("(u:User {username: $username})-[w:WATCHED]->(s:Show {title: $showTitle})")
+            .Where("w.rating IS NOT NULL OR w.comment IS NOT NULL")
+            .WithParams(new { username, showTitle })
+            .Return(w => w.As<Watched>())
+            .ResultsAsync;
+
+        if (hasReview.Any())
+        {
+            Console.WriteLine($"Cannot change state for {showTitle}. Remove the review first.");
+            return false;
+        }
+
+        // Ako ne postoji review menjamo tip veze
         var result = await client.Cypher
             .Match("(u:User {username: $username}), (s:Show {title: $showTitle})")
-            .WithParams(new
-            {
-                username,
-                showTitle
-            })
-            .OptionalMatch("(u)-[r:WATCHED|WATCHING]->(s)")
+            .WithParams(new { username, showTitle })
+            .OptionalMatch("(u)-[r:WATCHING|WATCHED]->(s)")
             .Delete("r")
             .Merge("(u)-[:YET_TO_WATCH]->(s)")
             .Return(s => s.As<Show>())
@@ -379,18 +390,17 @@ public class UserService
 
         if (result.Any())
         {
-            Console.WriteLine($"User {username} added {showTitle} to watchlist.");
+            Console.WriteLine($"User {username} added {showTitle} to plan to watch list.");
             return true;
         }
         else
         {
             Console.WriteLine("No user or show with given title exists.");
-            return false;
+            return null;
         }
     }
 
-    // Treba da se iskoristi Watched klasa a ne Show klasa?
-    public async Task<bool?> AddShowWatchedAsync(string username, string showTitle)
+    public async Task<bool> AddShowWatchedAsync(string username, string showTitle)
     {
         using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
         await client.ConnectAsync();
@@ -425,13 +435,24 @@ public class UserService
         using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
         await client.ConnectAsync();
 
+        // Proveravamo da li postoji review za seriju
+        var hasReview = await client.Cypher
+            .Match("(u:User {username: $username})-[w:WATCHED]->(s:Show {title: $showTitle})")
+            .Where("w.rating IS NOT NULL OR w.comment IS NOT NULL")
+            .WithParams(new { username, showTitle })
+            .Return(w => w.As<Watched>())
+            .ResultsAsync;
+
+        if (hasReview.Any())
+        {
+            Console.WriteLine($"Cannot change state for {showTitle}. Remove the review first.");
+            return false;
+        }
+
+        // Ako ne postoji review menjamo tip veze
         var result = await client.Cypher
             .Match("(u:User {username: $username}), (s:Show {title: $showTitle})")
-            .WithParams(new
-            {
-                username,
-                showTitle
-            })
+            .WithParams(new { username, showTitle })
             .OptionalMatch("(u)-[r:YET_TO_WATCH|WATCHED]->(s)")
             .Delete("r")
             .Merge("(u)-[:WATCHING]->(s)")
@@ -446,8 +467,94 @@ public class UserService
         else
         {
             Console.WriteLine("No user or show with given title exists.");
+            return null;
+        }
+    }
+
+    public async Task<Dictionary<int, string?>?> GetReviewAsync(string username, string showTitle)
+    {
+        using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
+        await client.ConnectAsync();
+
+        var review = await client.Cypher
+            .Match("(u:User {username: $username})-[w:WATCHED]->(s:Show {title: $showTitle})")
+            .Where("w.rating IS NOT NULL OR w.comment IS NOT NULL")
+            .WithParams(new { username, showTitle })
+            .Return(w => new
+            {
+                Rating = w.As<Watched>().rating,
+                Comment = w.As<Watched>().comment
+            })
+            .ResultsAsync;
+
+        if (!review.Any())
+        {
+            Console.WriteLine($"No review found for user {username} on show {showTitle}.");
+            return null;
+        }
+
+        var firstReview = review.FirstOrDefault();
+        if (firstReview == null) return null;
+
+        Console.WriteLine($"Returned review for user {username} on show {showTitle}.");
+        return new Dictionary<int, string?> { { firstReview.Rating, firstReview.Comment } };
+    }
+
+    public async Task<bool> AddReviewAsync(string username, string showTitle, int rating, string comment)
+    {
+        using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
+        await client.ConnectAsync();
+
+        // Ako je korisnik gledao seriju
+        var watchedConnection = await client.Cypher
+            .Match("(u:User {username: $username})-[w:WATCHED]->(s:Show {title: $showTitle})")
+            .WithParams(new { username, showTitle })
+            .Return(w => w.As<Watched>())
+            .ResultsAsync;
+
+        if (!watchedConnection.Any())
+        {
+            Console.WriteLine($"User {username} has not watched the show {showTitle}. Review cannot be added.");
             return false;
         }
+
+        // Dodaje ili azurira review
+        await client.Cypher
+            .Match("(u:User {username: $username})-[w:WATCHED]->(s:Show {title: $showTitle})")
+            .WithParams(new { username, showTitle, rating, comment })
+            .Set("w.rating = $rating, w.comment = $comment")
+            .ExecuteWithoutResultsAsync();
+
+        Console.WriteLine($"Review added/updated for user {username} on show {showTitle}.");
+        return true;
+    }
+
+    public async Task<bool> DeleteReviewAsync(string username, string showTitle)
+    {
+        using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
+        await client.ConnectAsync();
+
+        var review = await client.Cypher
+            .Match("(u:User {username: $username})-[w:WATCHED]->(s:Show {title: $showTitle})")
+            .Where("w.rating IS NOT NULL OR w.comment IS NOT NULL")
+            .WithParams(new { username, showTitle })
+            .Return(w => w.As<Watched>())
+            .ResultsAsync;
+
+        if (!review.Any())
+        {
+            Console.WriteLine($"No review exists for user {username} on show {showTitle}.");
+            return false;
+        }
+
+        await client.Cypher
+            .Match("(u:User {username: $username})-[w:WATCHED]->(s:Show {title: $showTitle})")
+            .WithParams(new { username, showTitle })
+            .Remove("w.rating, w.comment")
+            .ExecuteWithoutResultsAsync();
+
+        Console.WriteLine($"Review successfully deleted for user {username} on show {showTitle}.");
+        return true;
     }
 
     #endregion
@@ -458,18 +565,18 @@ public class UserService
         await client.ConnectAsync();
 
         var query = client.Cypher
-         .Match("(u:User {username: $username})")
-         .WithParam("username", username)
-         .OptionalMatch("(u)-[:WATCHED]->(w:Show)")
-         .OptionalMatch("(u)-[:WATCHING]->(q:Show)")
-         .OptionalMatch("(u)<-[:FOLLOWS]-(f:User)")
-         // Vraćanje podataka o broju serija i korisnika koji prate
-         .Return((w, q, f) => new
-         {
-             WatchedCount = w.Count(),
-             WatchingCount = q.Count(),
-             FollowersCount = f.Count()
-         });
+            .Match("(u:User {username: $username})")
+            .WithParam("username", username)
+            .OptionalMatch("(u)-[:WATCHED]->(w:Show)")
+            .OptionalMatch("(u)-[:WATCHING]->(q:Show)")
+            .OptionalMatch("(u)<-[:FOLLOWS]-(f:User)")
+            // Vraćanje podataka o broju serija i korisnika koji prate
+            .Return((w, q, f) => new
+            {
+                WatchedCount = w.Count(),
+                WatchingCount = q.Count(),
+                FollowersCount = f.Count()
+            });
 
         var result = await query.ResultsAsync;
         var data = result.FirstOrDefault();
@@ -478,7 +585,7 @@ public class UserService
 
         if (data != null)
             return ((int)data.WatchedCount, (int)data.WatchingCount, (int)data.FollowersCount);
-        
-        return (0,0,0);
+
+        return (0, 0, 0);
     }
 }

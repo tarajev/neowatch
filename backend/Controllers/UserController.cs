@@ -148,21 +148,23 @@ public class UserController : ControllerBase
     {
         bool? added = await _userService.AddShowToWatchAsync(username, showTitle);
 
-        if (added == null)
-            return BadRequest("Korisnik ili serija sa zadatim imenom ne postoji.");
+        if (added == true)
+            return Ok($"Uspešno dodata serija {showTitle} korisniku {username} u listi koju je korisnik planira da gleda.");
+        if (added == false)
+            return BadRequest("Nemoguće prebaciti seriju iz liste odgledatih serija koje imaju recenziju. Prvo obrišite recenziju.");
         else
-            return Ok($"{(added == true ? "Uspešno" : "Neuspešno")} dodata serija {showTitle} korisniku {username} u listi koju korisnik planira da gleda.");
+            return BadRequest("Korisnik ili serija sa zadatim imenom ne postoji.");
     }
 
     [HttpPut("AddShowWatched")]
     public async Task<IActionResult> AddShowWatched(string username, string showTitle)
     {
-        bool? added = await _userService.AddShowWatchedAsync(username, showTitle);
+        bool added = await _userService.AddShowWatchedAsync(username, showTitle);
 
-        if (added == null)
-            return BadRequest("Korisnik ili serija sa zadatim imenom ne postoji.");
+        if (added)
+            return Ok($"Uspešno dodata serija {showTitle} korisniku {username} u listu koju je korisnik odgledao.");
         else
-            return Ok($"{(added == true ? "Uspešno" : "Neuspešno")} dodata serija {showTitle} korisniku {username} u listu koju je korisnik odgledao.");
+            return BadRequest("Korisnik ili serija sa zadatim imenom ne postoji.");
     }
 
     [HttpPut("AddShowWatching")]
@@ -170,10 +172,45 @@ public class UserController : ControllerBase
     {
         bool? added = await _userService.AddShowWatchingAsync(username, showTitle);
 
-        if (added == null)
-            return BadRequest("Korisnik ili serija sa zadatim imenom ne postoji.");
+        if (added == true)
+            return Ok($"Uspešno dodata serija {showTitle} korisniku {username} u listi koju korisnik gleda.");
+        if (added == false)
+            return BadRequest("Nemoguće prebaciti seriju iz liste odgledatih serija koje imaju recenziju. Prvo obrišite recenziju.");
         else
-            return Ok($"{(added == true ? "Uspešno" : "Neuspešno")} dodata serija {showTitle} korisniku {username} u listi koju je korisnik odgledao.");
+            return BadRequest("Korisnik ili serija sa zadatim imenom ne postoji.");
+    }
+
+    [HttpGet("GetReview")]
+    public async Task<IActionResult> GetReview(string username, string showTitle)
+    {
+        var review = await _userService.GetReviewAsync(username, showTitle);
+
+        if (review != null)
+            return Ok($"Recenzija korisnika {username}:\nOcena: {review.FirstOrDefault().Key}\n{review.FirstOrDefault().Value}");
+        else
+            return BadRequest("Korisnik nema recenziju za ovu seriju.");
+    }
+
+    [HttpPut("AddReview")]
+    public async Task<IActionResult> AddReview(string username, string showTitle, int rating, string comment)
+    {
+        var review = await _userService.AddReviewAsync(username, showTitle, rating, comment);
+
+        if (review)
+            return Ok($"Uspešno dodata recenzija.");
+        else
+            return BadRequest("Nemoguće dodati recenziju za seriju koju korisnik nije odgledao.");
+    }
+
+    [HttpDelete("DeleteReview")]
+    public async Task<IActionResult> DeleteReview(string username, string showTitle)
+    {
+        var review = await _userService.DeleteReviewAsync(username, showTitle);
+
+        if (review)
+            return Ok($"Uspešno obrisana recenzija.");
+        else
+            return BadRequest("Nemoguće obrisati recenziju koja ne postoji.");
     }
 
     #endregion

@@ -4,6 +4,6 @@ public class Watched
 {
     public required Show Show;
     public required User User;
-    public double? rating;
+    public required int rating;
     public string? comment;
 }
