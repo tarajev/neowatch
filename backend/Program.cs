@@ -25,6 +25,7 @@ builder.Services.AddSingleton<IDriver>(provider =>
 builder.Services.AddScoped<ShowService>();
 builder.Services.AddScoped<ActorService>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<GenreService>();
 
 builder.Services.AddCors(options =>
     {

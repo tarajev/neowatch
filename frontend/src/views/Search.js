@@ -8,6 +8,7 @@ import AuthorizationContext from '../context/AuthorizationContext';
 import '../assets/colors.css'
 import '../assets/animations.css'
 import Select from "react-select";
+import ShowInfo from './ShowInfo';
 
 export default function DrawSearchTvShows() {
   const { APIUrl, contextUser } = useContext(AuthorizationContext);
@@ -28,26 +29,13 @@ export default function DrawSearchTvShows() {
   const [showsByGenre, setShowsByGenre] = useState(null);
   const [showsByName, setShowsByName] = useState(null);
   const [filteredShows, setFilteredShows] = useState(false); //samo true/false
-
-  //privremeno
-  const genres = ["Crime", "Drama", "Thriller", "Fantasy", "Horror", "Biography", "History", "Action", "Adventure", "Comedy", "Romance"];
-
-  const genreOptions = genres.map((genre) => ({ value: genre, label: genre }));
+  const [genreOptions, setGenreOptions] = useState([]);
+  const [selectedTvShow, setSelectedTvShow] = useState(null);
 
 
   const handleDropdownChange = (selectedOptions) => {
     setSelectedGenres(selectedOptions ? selectedOptions.map((option) => option.value) : []);
   };
-
-  /*
-  const tvShows = [ //privremeno naravno
-    { id: 1, title: "Breaking Bad", image: breakingBadImage, numberOfSeasons: 5, rating: 9.5, cast: ["Bryan Cranston", "Aaron Paul", "Anna Gunn"], genres: ["Crime", "Drama", "Thriller"], desc: "A high school chemistry teacher turned methamphetamine producer partners with a former student to build a drug empire.", year: 2008 },
-    { id: 2, title: "Stranger Things", image: strangerThingsImage, numberOfSeasons: 4, rating: 8.7, cast: ["Winona Ryder", "David Harbour", "Finn Wolfhard", "Winona Ryder", "David Harbour", "Finn Wolfhard"], genres: ["Drama", "Fantasy", "Horror"], desc: "A group of kids in a small town uncover supernatural events while searching for their missing friend.", year: 2016 },
-    { id: 3, title: "The Crown", image: theCrownImage, numberOfSeasons: 6, rating: 8.6, cast: ["Claire Foy", "Olivia Colman", "Matt Smith"], genres: ["Biography", "Drama", "History"], desc: "The story of Queen Elizabeth II's reign, from her early years on the throne to present day.", year: 2016 },
-    { id: 4, title: "The Witcher", image: theWitcherImage, numberOfSeasons: 3, rating: 8.1, cast: ["Henry Cavill", "Anya Chalotra", "Freya Allan"], genres: ["Action", "Adventure", "Drama"], desc: "A mutated monster hunter, Geralt of Rivia, struggles to find his place in a world where people often prove more wicked than beasts.", year: 2019 },
-    { id: 5, title: "Friends", image: friendsImage, numberOfSeasons: 10, rating: 8.8, cast: ["Jennifer Aniston", "Courteney Cox", "Lisa Kudrow"], genres: ["Comedy", "Romance"], desc: "Six friends navigate life and love in New York City, sharing laughter, heartbreak, and a lot of coffee.", year: 1994 }
-  ];
-*/
 
   useEffect(() => {
     if (mostWatchedShows == null) {
@@ -59,10 +47,14 @@ export default function DrawSearchTvShows() {
   }, [currentSeries, mostWatchedShows]);
 
   useEffect(() => {
-    const filteredShows = (showsByName && showsByGenre) 
-      ? showsByName.filter(showByName => 
-          showsByGenre.some(showByGenre => showByName.title === showByGenre.title)
-        )
+    getAllGenres();
+  }, []);
+
+  useEffect(() => {
+    const filteredShows = (showsByName && showsByGenre)
+      ? showsByName.filter(showByName =>
+        showsByGenre.some(showByGenre => showByName.title === showByGenre.title)
+      )
       : showsByName || showsByGenre; // Ako je samo jedno prisutno, koristi ga
     if (filteredShows) {
       const indexOfLastSeries = currentPage * seriesPerPage;
@@ -70,23 +62,24 @@ export default function DrawSearchTvShows() {
       setCurrentSeries(filteredShows.slice(indexOfFirstSeries, indexOfLastSeries));
       setFilteredShows(true);
     }
-    else{
-     setCurrentSeries(mostWatchedShows);
-     setFilteredShows(false);
+    else {
+      setCurrentSeries(mostWatchedShows);
+      setFilteredShows(false);
     }
-  
+
     console.log(currentSeries);
   }, [showsByGenre, showsByName, currentPage]);
 
-  const handleTvShowClick = () => {
-
+  const handleTvShowClick = (show) => {
+       setSelectedTvShow(show);
+       console.log(show);
   };
 
   const handleKeyDown = async (e) => {
     if (e.key === 'Enter') {
-      if (search.trim() === "") { 
+      if (search.trim() === "") {
         setShowsByName(null);
-        return; 
+        return;
       }
       searchTvShowsByName(search);
     }
@@ -108,6 +101,7 @@ export default function DrawSearchTvShows() {
     try {
       const result = await axios.get(`${APIUrl}Show/GetMostWatchedShows`);
       setMostWatchedShows(result.data);
+      console.log(result.data);
     } catch (error) {
       console.error(error);
     }
@@ -122,14 +116,14 @@ export default function DrawSearchTvShows() {
     }
   };
 
-  /*useEffect(() => {
-    if (search === "") {
-      setTimeout(() => {
-        // setTvShows(null);
-        setSearched(false);
-      }, 350); // Mora sa timeout-om vecim nego debouncedSearch jer ce se searched vratiti na true
+  const getAllGenres = async () => {
+    try {
+      const result = await axios.get(`${APIUrl}Genre/GetAllGenres/`);
+      setGenreOptions(result.data.map((genre) => ({ value: genre.name, label: genre.name })));
+    } catch (error) {
+      console.error(error);
     }
-  }, [search]) */
+  };
 
   useEffect(() => {
     if (selectedGenres != null && selectedGenres.length > 0) {
@@ -149,42 +143,45 @@ export default function DrawSearchTvShows() {
             className="rounded-xl pl-4 text-white"
             onChange={(e) => { setSearch(e.target.value) }}
             onKeyDown={handleKeyDown}
-          />   
+          />
           {/*{(currentSeries && filteredShows==false) && ((currentSeries ? (currentSeries.length == 0 ? true : false) : false) || notFound) && <p className='p-2 text-gray-500 text-sm bg-transparent'>No Series found that match the criteria.</p>}*/}
         </div>
         <div className='col-span-8 mb-2'>
-          <Select
-            id="genreDropdown"
-            options={genreOptions}
-            isMulti
-            value={genreOptions.filter((option) => selectedGenres.includes(option.value))}
-            onChange={handleDropdownChange}
-            placeholder="Choose genres..."
-            className="border-violet-800 border-4 rounded-2xl"
-            styles={{
-              control: (provided, state) => ({
-                ...provided,
-                borderRadius: "0.5rem",
-                border: "#5b21b6",
-                backgroundColor: "#111827",
-                width: "100%"
-              }),
-              option: (provided, state) => ({
-                ...provided,
-                "&:hover": {
-                  backgroundColor: "#5b21b6",
-                },
-              }),
-              multiValue: (provided) => ({
-                ...provided,
-                backgroundColor: "#5b21b6", // Pozadina taga
-              }),
-              multiValueLabel: (provided) => ({
-                ...provided,
-                color: "white", // Tekst taga
-              }),
-            }}
-          />
+          {genreOptions && genreOptions.length > 0 ? (
+            <Select
+              id="genreDropdown"
+              options={genreOptions}
+              isMulti
+              value={genreOptions.filter((option) => selectedGenres.includes(option.value))}
+              onChange={handleDropdownChange}
+              placeholder="Choose genres..."
+              className="border-violet-800 border-4 rounded-2xl"
+              styles={{
+                control: (provided, state) => ({
+                  ...provided,
+                  borderRadius: "0.5rem",
+                  border: "#5b21b6",
+                  backgroundColor: "#111827",
+                  width: "100%"
+                }),
+                option: (provided, state) => ({
+                  ...provided,
+                  "&:hover": {
+                    backgroundColor: "#5b21b6",
+                  },
+                }),
+                multiValue: (provided) => ({
+                  ...provided,
+                  backgroundColor: "#5b21b6", // Pozadina taga
+                }),
+                multiValueLabel: (provided) => ({
+                  ...provided,
+                  color: "white", // Tekst taga
+                }),
+              }}
+            />) : (
+            <p className="text-gray-400 text-sm">Loading genres...</p>
+          )}
         </div>
       </div>
       <div className='  mx-4 grid gap-6 grid-cols-12 h-fit auto-rows-auto mb-2'>
@@ -192,7 +189,7 @@ export default function DrawSearchTvShows() {
           <div
             key={tvShow.id + "_" + index}
             className="relative grid col-span-12 md:col-span-3 sm:col-span-4 place-items-center cursor-pointer drop-shadow-[0_5px_5px_rgba(0,0,0,0.55)] transition ease-in-out delay-150"
-            onClick={() => handleTvShowClick(tvShow.id)}
+            onClick={() => handleTvShowClick(tvShow)}
           >
             <img
               src={`/images/${tvShow.imageUrl}`} //kako se čuvaju slike treba srediti
@@ -206,6 +203,12 @@ export default function DrawSearchTvShows() {
             </div>
           </div>
         ))}
+        {selectedTvShow && (
+          <ShowInfo
+            show={selectedTvShow}
+            handleExitClick={() => setSelectedTvShow(null)}
+          />
+        )}
       </div>
       <div className="flex justify-center items-center mt-3 mb-1 space-x-4">
         <button
@@ -216,7 +219,7 @@ export default function DrawSearchTvShows() {
           <span className="text-white">&larr;</span> {/* Strelica levo */}
         </button>
         <span className="text-black-700 text-lg">
-          {currentPage} / {Math.ceil(currentSeries ? currentSeries.length : 1 / seriesPerPage)} {/* OVDE DA SE ZAMENI SA CELOKUPNIM SEARCHOM  */}
+          {currentPage} / {Math.ceil(currentSeries ? currentSeries.length : 1 / seriesPerPage)} 
         </span>
         <button
           onClick={() =>

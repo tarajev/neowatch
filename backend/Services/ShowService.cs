@@ -365,20 +365,42 @@ public class ShowService
         using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
         await client.ConnectAsync();
 
-        var genreNames = genres.Select(g => char.ToUpper(g[0]) + g[1..].ToLower()).ToList();
-
         var query = client.Cypher
          .Match("(s:Show)-[:IN_GENRE]->(g:Genre)")
          .Where("g.name IN $names")
-         .WithParam("names", genreNames)
-         .With("s, count(g) AS genreCount")
+         .WithParam("names", genres)
+         .OptionalMatch("(a:Actor)-[r:ACTED_IN]->(s)") //ako odmah posle match ide i optional match vraca nekog koji je null
+         .With("s, count(g) AS genreCount, COLLECT(DISTINCT g) AS genres, COLLECT(DISTINCT {actor: a, role: r.role}) AS actedIn")
          .OrderByDescending("genreCount") // Prioritet serijama koje pripadaju više traženih žanrova
-         .Limit(30)
-         .Return(s => s.As<Show>()); //  izgleda ne mora distinct zbog count jer su tu vec grupise
-
+         .Limit(40)
+         .Return((s, genres, actedIn) => new  //  izgleda ne mora distinct zbog count jer su tu vec grupise
+         {
+             Show = s.As<Show>(),
+             Genres = genres.As<List<Genre>>(),
+             ActedIn = actedIn.As<List<ActedIn>>(),
+         });
         var result = await query.ResultsAsync;
 
-        return result.ToList();
+        var shows = new List<Show>();
+
+        foreach (var item in result)
+        {
+            var show = new Show
+            {
+                title = item.Show.title,
+                year = item.Show.year,
+                desc = item.Show.desc,
+                imageUrl = item.Show.imageUrl,
+                rating = item.Show.rating,
+                genres = item.Genres.ToList(),
+                cast = item.ActedIn.ToList(),
+                numberOfSeasons = item.Show.numberOfSeasons
+            };
+
+            shows.Add(show);
+        }
+
+        return shows;
     }
 
     public async Task<List<Show>> SearchShowsByActor(string actorName)
@@ -398,7 +420,7 @@ public class ShowService
         var query = client.Cypher
             .Match("(s:Show)<-[:ACTED_IN]-(a:Actor {name: $actorName})")
             .WithParam("actorName", fullName)
-            .Limit(30)
+            .Limit(40)
             .Return(s => s.As<Show>());
 
         var result = await query.ResultsAsync;
@@ -414,14 +436,40 @@ public class ShowService
 
         var query = client.Cypher
             .Match("(u:User)-[r:WATCHED|WATCHING]->(s:Show)")
-            .With("s, count(r) AS count")
-            .OrderByDescending("count") 
+            .OptionalMatch("(s)-[:IN_GENRE]->(g:Genre)")
+            .OptionalMatch("(s)<-[i:ACTED_IN]-(a:Actor)")
+            .With("s, count(r) AS count, COLLECT(DISTINCT g) AS genres, COLLECT(DISTINCT{actor: a, role: i.role}) AS actedIn")
+            .OrderByDescending("count")
             .Limit(40)
-            .Return(s => s.As<Show>()); 
+            .Return((s, genres, actedIn) => new
+            {
+                Show = s.As<Show>(),
+                Genres = genres.As<List<Genre>>(),
+                ActedIn = actedIn.As<List<ActedIn>>(),
+            });
 
         var result = await query.ResultsAsync;
 
-        return result.ToList();
+        var shows = new List<Show>();
+
+        foreach (var item in result)
+        {
+            var show = new Show
+            {
+                title = item.Show.title,
+                year = item.Show.year,
+                desc = item.Show.desc,
+                imageUrl = item.Show.imageUrl,
+                rating = item.Show.rating,
+                genres = item.Genres.ToList(),
+                cast = item.ActedIn.ToList(),
+                numberOfSeasons = item.Show.numberOfSeasons
+            };
+
+            shows.Add(show);
+        }
+
+        return shows;
     }
 
     public async Task<List<Show>> SearchShowsByTitle(string search)
@@ -434,12 +482,39 @@ public class ShowService
             .Match("(s:Show)")
             .Where("TOLOWER(s.title) CONTAINS TOLOWER($search)")
             .WithParam("search", search)
-            //.Limit(40)
-            .Return(s => s.As<Show>()); 
+            .OptionalMatch("(s:Show)-[:IN_GENRE]->(g:Genre)")
+            .OptionalMatch("(s:Show)<-[r:ACTED_IN]-(a:Actor)")
+            .With("s, COLLECT(DISTINCT g) AS genres, COLLECT(DISTINCT{actor: a, role: r.role}) AS actedIn")
+            .Limit(40)
+             .Return((s, genres, actedIn) => new
+             {
+                 Show = s.As<Show>(),
+                 Genres = genres.As<List<Genre>>(),
+                 ActedIn = actedIn.As<List<ActedIn>>(),
+             });
 
         var result = await query.ResultsAsync;
 
-        return result.ToList();
+        var shows = new List<Show>();
+
+        foreach (var item in result)
+        {
+            var show = new Show
+            {
+                title = item.Show.title,
+                year = item.Show.year,
+                desc = item.Show.desc,
+                imageUrl = item.Show.imageUrl,
+                rating = item.Show.rating,
+                genres = item.Genres.ToList(),
+                cast = item.ActedIn.ToList(),
+                numberOfSeasons = item.Show.numberOfSeasons
+            };
+
+            shows.Add(show);
+        }
+
+        return shows;
     }
 
 

@@ -39,11 +39,11 @@ export default function ShowInfo({ show, handleExitClick }) {
                             <span className="text-white opacity-60">
                                 {show.year} | {show.numberOfSeasons} {show.numberOfSeasons > 0 ? "Seasons" : "Season"} |
                             </span>
-                            <Rating name="half-rating-read" defaultValue={4.5} precision={0.5} size="small" readOnly />
+                            <Rating name="half-rating-read" defaultValue={4} precision={0.5} size="small" readOnly /> {/*ispraviti na rating serije ili ako ne postoji da to pise?*/}
                         </div>
                         <div className="flex items-center gap-x-6 mb-5">
                             {show.genres.map((genre) => (
-                                <span className="text-white opacity-80">{genre}</span>
+                                <span className="text-white opacity-80">{genre.name}</span>
                             ))}
                         </div>
                         <div className="w-fit ">
@@ -51,7 +51,7 @@ export default function ShowInfo({ show, handleExitClick }) {
                         <div className="flex flex-wrap gap-x-2 mt-4 h-4 ">
                             <span className="text-white opacity-80 font-semibold mr-1">Cast:</span> {/*nešto da se uradi povodom toga da ne ispisuje sve glumce već samo par */}
                             {show.cast.map((a, index) => (
-                                <span key={index} className="text-white opacity-80 inline truncate max-w-xs">{a} {index < show.cast.length - 1 && ", "}</span>
+                                <span key={index} className="text-white opacity-80 inline truncate max-w-xs">{a.actor.name} {index < show.cast.length - 1 && ", "}</span>
                             ))}
                         </div>
                     </div>
