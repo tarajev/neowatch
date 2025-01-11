@@ -5,6 +5,13 @@ import AuthorizationContext from '../context/AuthorizationContext'
 import axios from 'axios'
 import profilePhoto from "../images/profilepicture.jpg";
 import ColorLine from "../components/ColorLine"
+import CollapsiblePanel from '../components/CollapsiblePanel';
+
+import breakingBadImage from "../images/breakingbad.jpg";
+import strangerThingsImage from "../images/strangerthings.jpg";
+import theCrownImage from "../images/thecrown.jpg";
+import theWitcherImage from "../images/thewitcher.jpg";
+import friendsImage from "../images/friends.jpg";
 
 export default function DrawProfile() {
   const { APIUrl, contextUser } = useContext(AuthorizationContext);
@@ -45,31 +52,25 @@ export default function DrawProfile() {
         </div>
         <div className='col-span-10'>
           <div className='grid grid-cols-3 gap-4 text-gray-400 text-center'>
-            <div className='col-span-3 font-bold text-4xl'>
+            <div className='col-span-3 font-bold text-4xl text-white'>
               Show Statistics
             </div>
             <div className='bg-indigo-950 border border-violet-900 rounded-xl'>
-              <p className='section-title !text-6xl'>
-                12
-              </p>
+              <p className='section-title !text-6xl'>12</p>
               <div className='flex bg-indigo-950 border-t mx-4 py-1 border-violet-900 justify-center items-center'>
                 <span className='bg-green-700 w-3 h-3 rounded-full mr-1' />
                 <span>Watching</span>
               </div>
             </div>
             <div className='bg-indigo-950 border border-violet-900 rounded-xl'>
-              <p className='section-title !text-6xl'>
-                35
-              </p>
+              <p className='section-title !text-6xl'>35</p>
               <div className='flex bg-indigo-950 border-t mx-4 py-1 border-violet-900 justify-center items-center'>
                 <span className='bg-blue-700 w-3 h-3 rounded-full mr-1' />
                 <span>Completed</span>
               </div>
             </div>
             <div className='bg-indigo-950 border border-violet-900 rounded-xl'>
-              <p className='section-title !text-6xl'>
-                56
-              </p>
+              <p className='section-title !text-6xl'>56</p>
               <div className='flex bg-indigo-950 border-t mx-4 py-1 border-violet-900 justify-center items-center'>
                 <span className='bg-gray-700 w-3 h-3 rounded-full mr-1' />
                 <span>Plan to Watch</span>
@@ -82,12 +83,51 @@ export default function DrawProfile() {
         </div>
       </div>
 
+      <div className='grid grid-cols-11 text-gray-400'>
+        <div className='col-span-8 bg-indigo-950 border border-violet-900 rounded-xl mr-3 px-3 py-1'>
+          <p>Neki opis ovog korisnika koji je on sam stavio. Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
+        </div>
+        <div className='col-span-3 bg-indigo-950 border border-violet-900 rounded-xl ml-1 px-3 py-1 h-fit'>
+          <p className='section-title !text-2xl justify-self-center'>102 followers</p>
+          <div className='justify-self-center'>
+            <Link>Follow this user</Link>
+          </div>
+        </div>
+      </div>
+
       {/* BOTTOM SECTION */}
-      <div className='grid grid-cols-12'>
-        <p className='col-span-12 section-title border-b-2 border-indigo-950'>Favorite Shows:</p>
-        <p className='col-span-12 section-title border-b-2 border-indigo-950'>Currently watching:</p>
-        <p className='col-span-12 section-title border-b-2 border-indigo-950'>Plans to watch:</p>
+      <div className='pt-5'>
+        <CollapsiblePanel title="Currently Watching:" open={true}>
+          <div className='grid grid-cols-6 gap-4 p-2'>
+            <SeriesSlot title='Breaking Bad' image={breakingBadImage} />
+            <SeriesSlot title='Breaking Bad' image={breakingBadImage} />
+            <SeriesSlot title='Breaking Bad' image={breakingBadImage} />
+            <SeriesSlot title='Breaking Bad' image={breakingBadImage} />
+            <SeriesSlot title='Breaking Bad' image={breakingBadImage} />
+            <SeriesSlot title='Breaking Bad' image={breakingBadImage} />
+          </div>
+        </CollapsiblePanel>
+        <CollapsiblePanel title="Watched Shows:">
+          <div className='grid grid-cols-6 gap-4 p-2'>
+            <SeriesSlot title='Breaking Bad' image={breakingBadImage} />
+          </div>
+        </CollapsiblePanel>
+        <CollapsiblePanel title="Plans to Watch:">
+          <div className='grid grid-cols-6 gap-4 p-2'>
+            <SeriesSlot title='Breaking Bad' image={breakingBadImage} />
+            <SeriesSlot title='Breaking Bad' image={breakingBadImage} />
+          </div>
+        </CollapsiblePanel>
       </div>
     </Page>
+  );
+}
+
+function SeriesSlot({ title, image }) {
+  return (
+    <div className='border border-violet-900 rounded-xl'>
+      <img src={image} className='h-64 pt-2 px-2 rounded-2xl' />
+      <p className='justify-self-center p-1 text-center'>{title}</p>
+    </div>
   );
 }

@@ -11,7 +11,7 @@ export default function DrawLoadingScreen({ loading }) {
   return (
     <div
       style={{ zIndex: 999 }}
-      className={`flex ${!loading && !hideComponent ? "hidden" : ""} ${loading ? "" : "fade-out-loading"} fixed bg-gradient-to-b from-gray-900 to-gray-950 items-center justify-center h-screen w-screen`}
+      className={`flex ${!loading && !hideComponent ? "hidden" : ""} ${loading ? "" : "fade-out-loading"} fixed bg-gradient-to-b from-indigo-900 to-indigo-950 items-center justify-center h-screen w-screen`}
     >
       <div className="w-full p-8 color-primary">
         <img
