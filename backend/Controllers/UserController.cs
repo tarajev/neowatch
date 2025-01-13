@@ -144,12 +144,12 @@ public class UserController : ControllerBase
     }
 
     [HttpPut("AddShowToWatch")]
-    public async Task<IActionResult> AddShowToWatch(string username, string showTitle)
+    public async Task<IActionResult> AddShowToWatch([FromBody] WatchInfo data)
     {
-        bool? added = await _userService.AddShowToWatchAsync(username, showTitle);
+        bool? added = await _userService.AddShowToWatchAsync(data.Username, data.TvShowTitle);
 
         if (added == true)
-            return Ok($"Uspešno dodata serija {showTitle} korisniku {username} u listi koju je korisnik planira da gleda.");
+            return Ok($"Uspešno dodata serija {data.TvShowTitle} korisniku {data.Username} u listi koju je korisnik planira da gleda.");
         if (added == false)
             return BadRequest("Nemoguće prebaciti seriju iz liste odgledatih serija koje imaju recenziju. Prvo obrišite recenziju.");
         else
@@ -157,23 +157,23 @@ public class UserController : ControllerBase
     }
 
     [HttpPut("AddShowWatched")]
-    public async Task<IActionResult> AddShowWatched(string username, string showTitle)
+    public async Task<IActionResult> AddShowWatched([FromBody] WatchInfo data)
     {
-        bool added = await _userService.AddShowWatchedAsync(username, showTitle);
+        bool added = await _userService.AddShowWatchedAsync(data.Username, data.TvShowTitle);
 
         if (added)
-            return Ok($"Uspešno dodata serija {showTitle} korisniku {username} u listu koju je korisnik odgledao.");
+            return Ok($"Uspešno dodata serija {data.TvShowTitle} korisniku {data.Username} u listu koju je korisnik odgledao.");
         else
             return BadRequest("Korisnik ili serija sa zadatim imenom ne postoji.");
     }
 
     [HttpPut("AddShowWatching")]
-    public async Task<IActionResult> AddShowWatching(string username, string showTitle)
+    public async Task<IActionResult> AddShowWatching([FromBody] WatchInfo data)
     {
-        bool? added = await _userService.AddShowWatchingAsync(username, showTitle);
+        bool? added = await _userService.AddShowWatchingAsync(data.Username, data.TvShowTitle);
 
         if (added == true)
-            return Ok($"Uspešno dodata serija {showTitle} korisniku {username} u listi koju korisnik gleda.");
+            return Ok($"Uspešno dodata serija {data.TvShowTitle} korisniku {data.Username} u listi koju korisnik gleda.");
         if (added == false)
             return BadRequest("Nemoguće prebaciti seriju iz liste odgledatih serija koje imaju recenziju. Prvo obrišite recenziju.");
         else
@@ -192,9 +192,9 @@ public class UserController : ControllerBase
     }
 
     [HttpPut("AddReview")]
-    public async Task<IActionResult> AddReview(string username, string showTitle, int rating, string comment)
+    public async Task<IActionResult> AddReview([FromBody] ReviewInfo data)
     {
-        var review = await _userService.AddReviewAsync(username, showTitle, rating, comment);
+        var review = await _userService.AddReviewAsync(data.Username, data.Title, data.Rating, data.Review); //provere za ovo dodaj
 
         if (review)
             return Ok($"Uspešno dodata recenzija.");
@@ -226,4 +226,19 @@ public class UserController : ControllerBase
             data.FollowersCount
         });
     }
+}
+
+public class WatchInfo
+{
+    public required string Username { get; set; }
+    public required string TvShowTitle { get; set; }
+}
+
+
+public class ReviewInfo //mozemo da dodamo ovo u watched isto kako god ne znam
+{
+    public required string Username { get; set; }
+    public required string Title { get; set; }
+    public required int Rating { get; set; }
+    public string? Review  { get; set; } = "";
 }

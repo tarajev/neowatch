@@ -104,6 +104,7 @@ export default function DrawSearchTvShows() {
       console.log(result.data);
     } catch (error) {
       console.error(error);
+      setMostWatchedShows([]);
     }
   };
 

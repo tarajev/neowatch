@@ -2,8 +2,8 @@ namespace NeoWatch.Model;
 
 public class Watched
 {
-    public required Show Show;
-    public required User User;
-    public required int rating;
-    public string? comment;
+    public Show? Show { get; set; }
+    public User? User { get; set; }
+    public required int rating { get; set; }
+    public string? comment { get; set; }
 }
