@@ -194,7 +194,7 @@ public class UserController : ControllerBase
     [HttpPut("AddReview")]
     public async Task<IActionResult> AddReview([FromBody] ReviewInfo data)
     {
-        var review = await _userService.AddReviewAsync(data.Username, data.Title, data.Rating, data.Review); //provere za ovo dodaj
+        var review = await _userService.AddReviewAsync(data.Username, data.Title, data.Rating, data.Comment); //provere za ovo dodaj
 
         if (review)
             return Ok($"Uspešno dodata recenzija.");
@@ -240,5 +240,5 @@ public class ReviewInfo //mozemo da dodamo ovo u watched isto kako god ne znam
     public required string Username { get; set; }
     public required string Title { get; set; }
     public required int Rating { get; set; }
-    public string? Review  { get; set; } = "";
+    public string? Comment  { get; set; } 
 }
