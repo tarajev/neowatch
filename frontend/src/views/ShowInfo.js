@@ -1,32 +1,93 @@
-import React, {useState, useContext} from "react";
+import React, { useState, useContext } from "react";
 import axios from 'axios'
 import { Button, Exit } from "../components/BasicComponents";
 import { Rating } from '@mui/material';
 import AuthorizationContext from '../context/AuthorizationContext'
 import WriteAReview from "./WriteAReview";
+import DeleteReviewPopUp from "../components/DeleteReviewPopUp";
 
 export default function ShowInfo({ show, handleExitClick }) {
 
     const { APIUrl, contextUser } = useContext(AuthorizationContext);
-    const [addReview, setAddReview] = useState(false)
+    const [addReview, setAddReview] = useState(false);
+    const [deleteReviewPopUp, setDeleteReviewPopUp] = useState(false);
+    const [pendingFunction, setPendingFunction] = useState(null);
 
     const handleExitAddReview = () => {
-       setAddReview(false);
+        setAddReview(false);
     };
+
+    const handleExitDeleteReviewPopUp = () => {
+        setDeleteReviewPopUp(false);
+    }
+
+    const handleDeleteAndMove = async () => {
+        await handleDeleteReview();
+        await pendingFunction();
+    }
+
+    const handleDeleteReview = async () => {
+        console.log(contextUser.jwtToken);
+        const data = {
+            username: contextUser.username,
+            tvShowTitle: show.title
+        };
+        await axios.delete(APIUrl + "User/DeleteReview", {
+            headers: {
+                Authorization: `Bearer ${contextUser.jwtToken}`,
+            },
+            params: data
+        }).then(response => {
+            console.log(response);
+        }).catch(err => console.log(err)); //ovde ako dodje do greške da se ispiše nešto
+    }
 
     const handleAddToWatched = (show) => {
         setAddReview(true);
     };
 
     const handleAddToWatching = async () => {
+        const data = {
+            username: contextUser.username,
+            tvShowTitle: show.title
+        };
+        await axios.put(APIUrl + "User/AddShowWatching", data, {
+            headers: {
+                Authorization: `Bearer ${contextUser.jwtToken}`,
+            }
+        }).then(response => {
+            console.log(response);
+            handleExitClick();
+        }).catch(err => {
+            console.log(err);
+            setPendingFunction(() => handleAddToWatching);
+            setDeleteReviewPopUp(true);
+        });
     };
 
     const handleAddToWatchlist = async () => {
+        const data = {
+            username: contextUser.username,
+            tvShowTitle: show.title
+        };
+        await axios.put(APIUrl + "User/AddShowToWatch", data, {
+            headers: {
+                Authorization: `Bearer ${contextUser.jwtToken}`,
+            }
+        }).then(response => {
+            console.log(response);
+            handleExitClick();
+        }).catch(err => {
+            console.log(err);
+            setPendingFunction(() => handleAddToWatchlist);
+            setDeleteReviewPopUp(true);
+        }); //ovde ako dodje do greške da se ispiše nešto?
     };
-    
+
     return (
         <> {addReview && <WriteAReview handleExitClick={handleExitAddReview} tvShowName={show.title}></WriteAReview>}
-            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 ">
+            {deleteReviewPopUp && <DeleteReviewPopUp onCancel={handleExitDeleteReviewPopUp} onDelete = {handleDeleteAndMove} ></DeleteReviewPopUp>}
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                 <div className="bg-[#5700a2] rounded-lg shadow-lg p-6 max-w-lg w-fit h-auto relative grid"> {/* mozda gradient background? */}
                     <Exit
                         blue

@@ -203,9 +203,9 @@ public class UserController : ControllerBase
     }
 
     [HttpDelete("DeleteReview")]
-    public async Task<IActionResult> DeleteReview(string username, string showTitle)
+    public async Task<IActionResult> DeleteReview([FromQuery] string username, [FromQuery] string tvShowTitle)
     {
-        var review = await _userService.DeleteReviewAsync(username, showTitle);
+        var review = await _userService.DeleteReviewAsync(username, tvShowTitle);
 
         if (review)
             return Ok($"Uspešno obrisana recenzija.");

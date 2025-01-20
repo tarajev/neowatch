@@ -220,11 +220,11 @@ export default function DrawSearchTvShows() {
           <span className="text-white">&larr;</span> {/* Strelica levo */}
         </button>
         <span className="text-black-700 text-lg">
-          {currentPage} / {Math.ceil(currentSeries ? currentSeries.length : 1 / seriesPerPage)} 
+          {currentPage} / {currentSeries ? (Math.ceil(currentSeries.length / seriesPerPage)) : 1} 
         </span>
         <button
           onClick={() =>
-            setCurrentPage((prev) => Math.min(prev + 1, Math.ceil(currentSeries ? currentSeries.length : 1 / seriesPerPage)))
+            setCurrentPage((prev) => Math.min(prev + 1, currentSeries ? Math.ceil( currentSeries.length/ seriesPerPage) : 1))
           }
           disabled={currentPage === Math.ceil(currentSeries ? currentSeries.length : 1 / seriesPerPage)}
           className="w-6 h-6 color-button flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-full transition duration-200 disabled:opacity-50"
