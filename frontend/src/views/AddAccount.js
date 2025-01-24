@@ -55,7 +55,7 @@ export default function DrawAddProfile({ handleExitClick, handleUserCount }) {
   return (
     <div className="left-0 top-0 overlay show">
       <div className="flex items-center hidescrollbar overscroll-contain justify-center h-screen overflow-y-auto">
-        <div ref={formRef} className='w-96 flex flex-col max-w-2xl p-6 bg-gray-900 border-y-4 border-violet-900 rounded-lg shadow-2xl shadow-violet-500/40 fade-in fade-in'>
+        <div ref={formRef} className='w-96 flex flex-col max-w-2xl p-6 bg-gray-900 border-y-4 border-violet-900 rounded-lg shadow-2xl shadow-violet-500/40 fade-in'>
           <div>
             <div>
               <div className='mb-4 w-full flex justify-center border-b border-violet-900'>

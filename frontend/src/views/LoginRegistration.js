@@ -10,17 +10,20 @@ import AuthorizationContext from '../context/AuthorizationContext';
 
 export function DrawRegistration({ onLoginClick, exitRegistration, handleLoginClick }) {
   const { APIUrl } = useContext(AuthorizationContext);
+  const formRef = useRef(null); // Za click van forme
+  const [isLoading, setIsLoading] = useState(false);
+
   const [userName, setUserName] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
   const [isEmailValid, setIsEmailValid] = useState(true);
   const [emailTouched, setEmailTouched] = useState(false);
-  const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordTouched, setPasswordTouched] = useState(false);
   const [passwordMatch, setPasswordMatch] = useState(true);
   const [invalidEmail, setInvalidEmail] = useState(false);
   const [invalidUsername, setInvalidUsername] = useState(false);
-  const formRef = useRef(null); // Za click van forme
 
   const handleUsernameChange = (e) => {
     setInvalidUsername(false);
@@ -77,6 +80,7 @@ export function DrawRegistration({ onLoginClick, exitRegistration, handleLoginCl
     setInvalidUsername(usernameResult.data ? true : false);
 
     if (!emailResult.data && !usernameResult.data) {
+      setIsLoading(true);
       await axios.post(APIUrl + "Auth/Register", {
         userName: userName,
         email: email,
@@ -87,6 +91,7 @@ export function DrawRegistration({ onLoginClick, exitRegistration, handleLoginCl
           exitRegistration();
         })
         .catch(err => console.log(err)); //ovde ako dodje do greške da se ispiše da se pokuša ponovo ili tako nesto
+      setIsLoading(false);
     }
   }
 
@@ -156,6 +161,7 @@ export function DrawRegistration({ onLoginClick, exitRegistration, handleLoginCl
               alertText="Šifre se ne podudaraju!"
             />
             <FormButton
+              loading={isLoading}
               text="Registrujte se"
               disabled={disableSubmit()}
             />
@@ -181,15 +187,17 @@ export function DrawRegistration({ onLoginClick, exitRegistration, handleLoginCl
 export function DrawLogin({ onRegisterClick, handleLoginClick }) {
   const { APIUrl, contextUser, contextSetUser } = useContext(AuthorizationContext);
   const [loginError, setLoginError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  
   const [isEmailValid, setIsEmailValid] = useState(true);
   const [emailTouched, setEmailTouched] = useState(false);
-  const [password, setPassword] = useState('');
   const [rememberLogin, setRememberLogin] = useState(false);
   const [forgottenInfo, setForgottenInfo] = useState(false);
   const [forgottenInfoSent, setForgottenInfoSent] = useState(false);
   const [forgottenInfoError, setForgottenInfoError] = useState(null);
-  const [showThrobber, setShowThrobber] = useState(false);
 
   const formRef = useRef(null); // Za click van forme
   const isFormValid = email.trim() !== '' && password.trim() !== '';
@@ -222,6 +230,8 @@ export function DrawLogin({ onRegisterClick, handleLoginClick }) {
 
   const handleLoginSubmit = async (event) => {
     event.preventDefault();
+
+    setIsLoading(true);
     await axios.post(APIUrl + "Auth/Login", {
       email: email,
       password: password
@@ -257,6 +267,7 @@ export function DrawLogin({ onRegisterClick, handleLoginClick }) {
         console.log(error);
         setLoginError("Pogrešan E-Mail ili šifra!");
       })
+    setIsLoading(false);
   }
 
   const validateEmail = (email) => {
@@ -322,7 +333,11 @@ export function DrawLogin({ onRegisterClick, handleLoginClick }) {
               onChange={handlePasswordChange}
             />
 
-            <FormButton text="Ulogujte se" disabled={!isFormValid} />
+            <FormButton 
+              text="Ulogujte se" 
+              loading={isLoading} 
+              disabled={!isFormValid}
+            />
 
             <div className="flex justify-end mt-3">
               <span className="block text-sm text-gray-400">
@@ -333,7 +348,6 @@ export function DrawLogin({ onRegisterClick, handleLoginClick }) {
               </Link>
             </div>
             <div className="flex justify-center mt-3 color-primary">
-              {showThrobber && <CircularProgress color="inherit" size="1.5rem" />}
               {loginError.length > 0 && <span className="text-red-500"> {loginError} </span>}
               {forgottenInfoSent && !forgottenInfoError && <span className='color-primary'>Uspešno poslata šifra na mail-u!</span>}
               {forgottenInfoError && <span className='text-red-500'>{forgottenInfoError !== 400 ? "Unesite mail u odgovarajućem polju." : "Korisnik nije pronadjen."}</span>}

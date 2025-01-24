@@ -11,13 +11,14 @@ import '../assets/App.css'
 
 import { styled } from '@mui/material/styles';
 import { default as MUIButton } from '@mui/material/Button';
+import { CircularProgress } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DrawLoadingScreen from '../views/LoadingScreen';
 import AuthorizationContext from '../context/AuthorizationContext';
 
 export function Page({ overlayActive, overlayHandler, children, loading = false, timeout = 500 }) {
   const [pageLoading, setPageLoading] = useState(loading);
-  const {contextUser, contextSetUser} = useContext(AuthorizationContext);
+  const { contextUser, contextSetUser } = useContext(AuthorizationContext);
   const location = useLocation();
   const prevLocation = useRef('');
 
@@ -50,7 +51,7 @@ export function Page({ overlayActive, overlayHandler, children, loading = false,
   }, [])
 
   // TODO - Da se uradi za check context usera da li je ulogovan vec bio ili ne?
-  
+
   return (
     <>
       <DrawLoadingScreen loading={pageLoading} />
@@ -80,7 +81,7 @@ export function Button({ type, onClick, disabled, preventTab, className, childre
   );
 }
 
-export function FileUpload({ className, width, height, text, buttonText, setPicture, limitInMegabytes = 1}) {
+export function FileUpload({ className, width, height, text, buttonText, setPicture, limitInMegabytes = 1 }) {
   const [fileName, setFileName] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
@@ -105,10 +106,9 @@ export function FileUpload({ className, width, height, text, buttonText, setPict
       setErrorMessage('');
       console.log(file);
     }
-    if(file.size >= limitInMegabytes * 1000000)
-    {
+    if (file.size >= limitInMegabytes * 1000000) {
       setErrorMessage(`Fajl je prevelik! Limit je ${limitInMegabytes}MB.`);
-      console.error(file);  
+      console.error(file);
     }
   };
 
@@ -151,7 +151,7 @@ export function SelectableButton({ onClick, selected, preventTab, className, chi
   );
 }
 
-export function FormButton({ text, disabled, onClick, className }) {
+export function FormButton({ text, disabled, onClick, loading, className }) {
   return (
     <div className="mt-6">
       <button
@@ -160,7 +160,9 @@ export function FormButton({ text, disabled, onClick, className }) {
         onClick={onClick}
         className={`w-full px-4 py-2 text-sm text-white text-center color-button rounded-md focus:ring-4 ring-violet-600 outline-none ${className}`}
       >
-        {text}
+        <div className='flex items-center justify-center'>
+          {loading && <CircularProgress size={15} className='mr-2' sx={{'color': 'white'}} />}{text}
+        </div>
       </button>
     </div>
   );
@@ -338,6 +340,6 @@ export function Password({ text, textClass, labelClass, required, visibility, in
 }
 
 export function GetMonthName(monthNumber) {
-  const months = ["Januar", "Februar", "Mart", "April", "Maj", "Jun", "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar" ];
+  const months = ["Januar", "Februar", "Mart", "April", "Maj", "Jun", "Jul", "Avgust", "Septembar", "Oktobar", "Novembar", "Decembar"];
   return months[monthNumber];
 }

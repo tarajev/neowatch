@@ -51,19 +51,19 @@ body.preload * {
 
 @keyframes fadeInShadow {
   0% {
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    box-shadow: 0 8px 10px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   }
   100% {
-    box-shadow: 0 4px 6px -1px #3C0071;
+    box-shadow: 0 8px 10px -1px #3C0071;
   }
 }
 
 @keyframes fadeOutShadow {
   0% {
-    box-shadow: 0 4px 6px -1px #3C0071;
+    box-shadow: 0 8px 10px -1px #3C0071;
   }
   100% {
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    box-shadow: 0 8px 10px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   }
 }
 

@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import axios from 'axios'
 import { Button, Exit } from "../components/BasicComponents";
 import { Rating } from '@mui/material';
@@ -7,7 +7,7 @@ import WriteAReview from "./WriteAReview";
 import DeleteReviewPopUp from "../components/DeleteReviewPopUp";
 
 export default function ShowInfo({ show, handleExitClick }) {
-
+    const formRef = useRef(null); // Za click van forme
     const { APIUrl, contextUser } = useContext(AuthorizationContext);
     const [addReview, setAddReview] = useState(false);
     const [deleteReviewPopUp, setDeleteReviewPopUp] = useState(false);
@@ -84,11 +84,23 @@ export default function ShowInfo({ show, handleExitClick }) {
         }); //ovde ako dodje do greške da se ispiše nešto?
     };
 
+    useEffect(() => { // Za click van forme
+        function handleClickOutside(event) {
+            if (formRef.current && !formRef.current.contains(event.target))
+                handleExitClick();
+        }
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
     return (
         <> {addReview && <WriteAReview handleExitClick={handleExitAddReview} tvShowName={show.title}></WriteAReview>}
-            {deleteReviewPopUp && <DeleteReviewPopUp onCancel={handleExitDeleteReviewPopUp} onDelete = {handleDeleteAndMove} ></DeleteReviewPopUp>}
+            {deleteReviewPopUp && <DeleteReviewPopUp onCancel={handleExitDeleteReviewPopUp} onDelete={handleDeleteAndMove} ></DeleteReviewPopUp>}
             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                <div className="bg-[#5700a2] rounded-lg shadow-lg p-6 max-w-lg w-fit h-auto relative grid"> {/* mozda gradient background? */}
+                <div ref={formRef} className="bg-[#5700a2] rounded-lg shadow-lg p-6 max-w-lg w-fit h-auto relative grid fade-in"> {/* mozda gradient background? */}
                     <Exit
                         blue
                         className="absolute top-3 right-3 text-sm w-4 cursor-pointer"
@@ -124,7 +136,7 @@ export default function ShowInfo({ show, handleExitClick }) {
                             <div className="flex flex-wrap gap-x-2 mt-4 h-4 ">
                                 <span className="text-white opacity-80 font-semibold mr-1">Cast:</span> {/*nešto da se uradi povodom toga da ne ispisuje sve glumce već samo par */}
                                 {show.cast.map((a, index) => (
-                                    <span key={index} className="text-white opacity-80 inline truncate max-w-xs">{a.actor.name} {index < show.cast.length - 1 && ", "}</span>
+                                    <span key={index} className="text-white opacity-80 inline truncate max-w-xs">{a.actor.name}{index < show.cast.length - 1 && ", "}</span>
                                 ))}
                             </div>
                         </div>
