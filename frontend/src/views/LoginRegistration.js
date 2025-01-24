@@ -322,16 +322,6 @@ export function DrawLogin({ onRegisterClick, handleLoginClick }) {
               onChange={handlePasswordChange}
             />
 
-            <div className="flex items-center justify-between mt-4">
-              <Checkbox value={rememberLogin} onChange={handleRememberLogin}>
-                Zapamti me
-              </Checkbox>
-
-              <Link href="#" onClick={() => setForgottenInfo(true)} disabled={isEmailValid ? false : true} className="text-sm">
-                Zaboravili ste šifru?
-              </Link>
-            </div>
-
             <FormButton text="Ulogujte se" disabled={!isFormValid} />
 
             <div className="flex justify-end mt-3">

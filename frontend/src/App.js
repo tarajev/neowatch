@@ -1,6 +1,7 @@
 import LandingPage from "./views/LandingPage"
 import MainPage from "./views/MainPage"
 import Profile from "./views/Profile"
+import ModeratorPage from './views/ModeratorPage'
 import AuthorizationContext from './context/AuthorizationContext';
 import './App.css';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -38,6 +39,7 @@ function App() {
             <Route path="/" element={<MainPage />} />
             <Route path="/landingpage" element={<LandingPage />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/moderatorpage" element={<ModeratorPage />} />
           </Routes>
         </BrowserRouter>
       </AuthorizationContext.Provider>
