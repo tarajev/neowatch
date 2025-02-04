@@ -1,4 +1,5 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
+import axios from "axios";
 import Slider from "react-slick";
 import AuthorizationContext from "../context/AuthorizationContext";
 import { Page } from "../components/BasicComponents";
@@ -17,6 +18,9 @@ import ShowInfo from "./ShowInfo";
 export default function DrawRecommendationsPage() {
   const { APIUrl, contextUser } = useContext(AuthorizationContext);
   const [selectedShow, setSelectedShow] = useState(null);
+  const [whatFriendsAreWatching, setWhatFriendsAreWatching] = useState([]);
+  const [recommendations, setRecommendation] = useState([]);
+  const [yetToWatch, setYetToWatch] = useState([]);
 
   const shows = [ //privremeno naravno
     { id: 1, title: "Breaking Bad", image: breakingBadImage, numberOfSeasons: 5, rating: 9.5, cast: [{ actor: { name: "Bryan Cranston" } }, { actor: { name: "Aaron Paul" } }, { actor: { name: "Anna Gunn" } }], genres: ["Crime", "Drama", "Thriller"], desc: "A high school chemistry teacher turned methamphetamine producer partners with a former student to build a drug empire.", year: 2008 },
@@ -26,13 +30,16 @@ export default function DrawRecommendationsPage() {
     { id: 5, title: "Friends", image: friendsImage, numberOfSeasons: 10, rating: 8.8, cast: [{ actor: { name: "Jennifer Aniston" } }, { actor: { name: "Courteney Cox" } }, { actor: { name: "Lisa Kudrow" } }], genres: ["Comedy", "Romance"], desc: "Six friends navigate life and love in New York City, sharing laughter, heartbreak, and a lot of coffee.", year: 1994 }
   ];
 
+  //postoji bug koji nisu popravili a to je da mora da ih ima minimum 4 (slidesToShow) da bi infinite radilo kako treba 
+  // pa u skladu sa tim bi najbolje bilo da se prikazuje ukoliko ima barem 4 serija kako bi po izgledu bilo uniformno ili da postoji drugaciji settings 
+  // za svaki od slidera s tim što će onda izgledati drugačije pa ne znam
   const settings = {
     dots: true,
-    infinite: true,
+    infinite: true, 
     speed: 500,
     slidesToShow: 4,
     slidesToScroll: 1,
-    arrows: true,
+    arrows: true
   };
 
   const handleShowClick = (show) => {
@@ -43,42 +50,100 @@ export default function DrawRecommendationsPage() {
     setSelectedShow(null); // Zatvara `ShowInfo`
   };
 
+   useEffect(() => {
+     getYetToWatchShows(contextUser.username);
+     getRecommendations(contextUser.username);
+     getWhatFriendsAreWatching(contextUser.username);
+    }, []);
+
+  const getYetToWatchShows = async (username) => {
+    var route = `User/GetShowsToWatch`;
+    await axios.get(APIUrl + route, {
+      headers: {
+        Authorization: `Bearer ${contextUser.jwtToken}`
+      },
+      params: {username: username}
+    })
+      .then(result => {
+        setYetToWatch(result.data)
+        console.log("test" + result.data.show.imageUrl);
+      })
+      .catch(error => {
+        console.log(error);
+      })
+  }
+
+  const getRecommendations = async (username) => {
+    var route = `Show/GetRecommendations/${username}`;
+    await axios.get(APIUrl + route, {
+      headers: {
+        Authorization: `Bearer ${contextUser.jwtToken}`
+      }
+    })
+      .then(result => {
+        setRecommendation(result.data)
+      })
+      .catch(error => {
+        console.log(error);
+      })
+  }
+
+  const getWhatFriendsAreWatching = async (username) => {
+    var route = `Show/FriendsWatchList/${username}`;
+    await axios.get(APIUrl + route, {
+      headers: {
+        Authorization: `Bearer ${contextUser.jwtToken}`
+      }
+    })
+      .then(result => {
+        setWhatFriendsAreWatching(result.data)
+      })
+      .catch(error => {
+        console.log(error);
+      })
+  }
+
   return (
     <>
       {selectedShow && (<ShowInfo handleExitClick={handleExitClick} show={selectedShow} />)}
       <div className="recommendations-page">
         {/* Red 1 */}
-        <h2 className="section-title">Don't forget to watch...</h2>
-        <Slider {...settings}>
-          {shows.map((show) => (
-            <div key={show.id} className="show-card transition-opacity duration-200 hover:opacity-50"> {/*hover ili rotacija po y? */}
-              <img src={show.image} alt={show.title} className="show-image" onClick={() => handleShowClick(show)} />
-              <p className="show-title">{show.title}</p>
-            </div>
-          ))}
-        </Slider>
+        {yetToWatch && yetToWatch.length > 0 ? (
+        <><h2 className="section-title">Don't forget to watch...</h2><Slider {...settings}>
+            {yetToWatch.map((show) => (
+              <div key={show.title} className="show-card transition-opacity duration-200 hover:opacity-50"> {/*hover ili rotacija po y? */}
+                <img src={`../images/${show.imageUrl}`} alt={show.title} className="show-image" onClick={() => handleShowClick(show)} />
+                <p className="show-title">{show.title}</p>
+              </div>
+            ))}
+          </Slider></>
+       ) : (<></>)}
 
         {/* Red 2 */}
-        <h2 className="section-title">You might like...</h2>
+       
+        {recommendations && recommendations.length > 0 ? ( 
+        <><h2 className="section-title">You might like...</h2>
         <Slider {...settings}>
-          {shows.map((show) => (
+          {recommendations.map((show) => (
             <div key={show.id} className="show-card transition-opacity duration-200 hover:opacity-50">
-              <img src={show.image} alt={show.title} className="show-image" onClick={() => handleShowClick(show)} />
+              <img src={`../images/${show.imageUrl}`} alt={show.title} className="show-image" onClick={() => handleShowClick(show)} />
               <p className="show-title">{show.title}</p>
             </div>
           ))}
-        </Slider>
+        </Slider></>
+        ) : (<></>)}
 
         {/* Red 3 */}
-        <h2 className="section-title">What friends are watching...</h2>
+        {whatFriendsAreWatching && whatFriendsAreWatching.length > 0 ? ( 
+        <><h2 className="section-title">What friends are watching...</h2>
         <Slider {...settings}>
-          {shows.map((show) => (
+          {whatFriendsAreWatching.map((show) => (
             <div key={show.id} className="show-card transition-opacity duration-200 hover:opacity-50">
-              <img src={show.image} alt={show.title} className="show-image" onClick={() => handleShowClick(show)} />
+              <img src={`../images/${show.imageUrl}`} alt={show.title} className="show-image" onClick={() => handleShowClick(show)} />
               <p className="show-title">{show.title}</p>
             </div>
           ))}
-        </Slider>
+        </Slider></>): (<></>)}
       </div>
     </>
   );

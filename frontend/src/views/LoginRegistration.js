@@ -75,8 +75,8 @@ export function DrawRegistration({ onLoginClick, exitRegistration, handleLoginCl
 
     const emailResult = await axios.get(APIUrl + `Auth/CheckEmail/${email}`);
     setInvalidEmail(emailResult.data === 0 ? false : true);
-    
-    const usernameResult = await axios.get(APIUrl +`User/GetUserByUsername/${userName}`);
+
+    const usernameResult = await axios.get(APIUrl + `User/GetUserByUsername/${userName}`);
     setInvalidUsername(usernameResult.data ? true : false);
 
     if (!emailResult.data && !usernameResult.data) {
@@ -142,7 +142,7 @@ export function DrawRegistration({ onLoginClick, exitRegistration, handleLoginCl
               onBlur={handleEmailBlur}
               onChange={handleEmailChange}
               alertCond={(!isEmailValid && emailTouched) || invalidEmail}
-              alertText={invalidEmail ? "Email je već u upotrebi!" : "Neispravan email format!"} 
+              alertText={invalidEmail ? "Email je već u upotrebi!" : "Neispravan email format!"}
             />
             <Password
               text="Šifra"
@@ -188,10 +188,10 @@ export function DrawLogin({ onRegisterClick, handleLoginClick }) {
   const { APIUrl, contextUser, contextSetUser } = useContext(AuthorizationContext);
   const [loginError, setLoginError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  
+
   const [isEmailValid, setIsEmailValid] = useState(true);
   const [emailTouched, setEmailTouched] = useState(false);
   const [rememberLogin, setRememberLogin] = useState(false);
@@ -251,16 +251,9 @@ export function DrawLogin({ onRegisterClick, handleLoginClick }) {
         var now = new Date();
         now.setHours(now.getHours() + 6);
 
-        if (rememberLogin) {
-          localStorage.setItem('NeowatchUser', JSON.stringify(user));
-          localStorage.setItem('NeoWatchExpiryDate', now);
-        }
-        else {
-          sessionStorage.setItem('AptusMedicaUser', JSON.stringify(user));
-          sessionStorage.setItem('AptusMedicaExpiryDate', now);
-        }
+        localStorage.setItem('NeowatchUser', JSON.stringify(user));
+        localStorage.setItem('NeoWatchExpiryDate', now);
 
-        localStorage.setItem('AptusMedicaRememberLogin', rememberLogin);
         handleLoginClick();
       })
       .catch(error => {
@@ -333,9 +326,9 @@ export function DrawLogin({ onRegisterClick, handleLoginClick }) {
               onChange={handlePasswordChange}
             />
 
-            <FormButton 
-              text="Ulogujte se" 
-              loading={isLoading} 
+            <FormButton
+              text="Ulogujte se"
+              loading={isLoading}
               disabled={!isFormValid}
             />
 

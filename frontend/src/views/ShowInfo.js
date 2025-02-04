@@ -84,7 +84,7 @@ export default function ShowInfo({ show, handleExitClick }) {
         }); //ovde ako dodje do greške da se ispiše nešto?
     };
 
-    useEffect(() => { // Za click van forme
+   /* useEffect(() => { // Za click van forme
         function handleClickOutside(event) {
             if (formRef.current && !formRef.current.contains(event.target))
                 handleExitClick();
@@ -94,29 +94,31 @@ export default function ShowInfo({ show, handleExitClick }) {
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, []);
+    }, []);*/
 
     return (
         <> {addReview && <WriteAReview handleExitClick={handleExitAddReview} tvShowName={show.title}></WriteAReview>}
             {deleteReviewPopUp && <DeleteReviewPopUp onCancel={handleExitDeleteReviewPopUp} onDelete={handleDeleteAndMove} ></DeleteReviewPopUp>}
             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-                <div ref={formRef} className="bg-[#5700a2] rounded-lg shadow-lg p-6 max-w-lg w-fit h-auto relative grid fade-in"> {/* mozda gradient background? */}
+                <div className="bg-[#5700a2] rounded-lg shadow-lg p-6 max-w-lg w-fit h-auto relative grid fade-in"> {/* mozda gradient background? */}
                     <Exit
                         blue
                         className="absolute top-3 right-3 text-sm w-4 cursor-pointer"
                         onClick={handleExitClick}
                     />
                     <div className="grid gap-5 grid-cols-8 grid-rows-[auto,auto] h-fit">
-                        <img
-                            src={show.image}
-                            alt={show.title}
-                            className="w-48 h-88 object-cover rounded-lg col-span-3"
-                        />
-                        <div className="col-span-3 col-start-1 row-start-2 h-fit p-0">
-                            {/*<Button className='drop-shadow-md rounded-md px-2 py-1 w-full mb-2' onClick={handleAddReview}>Review</Button>*/} {/*Ovo će ići kroz watched za sada*/}
-                            <Button className='drop-shadow-md rounded-md px-2 py-1 w-full mb-2' onClick={handleAddToWatchlist}>Add To Watchlist</Button>
-                            <Button className='drop-shadow-md rounded-md px-2 py-1 w-full mb-2' onClick={handleAddToWatching}>Add to Watching</Button>
-                            <Button className='drop-shadow-md rounded-md px-2 py-1 w-full' onClick={handleAddToWatched}>Add to Watched</Button>
+                        <div className="flex flex-col col-span-3">
+                            <img
+                                src={`../images/${show.imageUrl}`}
+                                alt={show.title}
+                                className="w-48 h-88 object-cover rounded-lg col-span-3 mb-2"
+                            />
+                            <div className="col-span-3 col-start-1 h-fit p-0">
+                                {/*<Button className='drop-shadow-md rounded-md px-2 py-1 w-full mb-2' onClick={handleAddReview}>Review</Button>*/} {/*Ovo će ići kroz watched za sada*/}
+                                <Button className='drop-shadow-md rounded-md px-2 py-1 w-full mb-2' onClick={handleAddToWatchlist}>Add To Watchlist</Button>
+                                <Button className='drop-shadow-md rounded-md px-2 py-1 w-full mb-2' onClick={handleAddToWatching}>Add to Watching</Button>
+                                <Button className='drop-shadow-md rounded-md px-2 py-1 w-full' onClick={handleAddToWatched}>Add to Watched</Button>
+                            </div>
                         </div>
                         <div className="col-span-5 col-start-4 row-start-1">
                             <h2 className="text-white text-3xl font-mono font-semibold col-span-5 text-wrap">{show.title}</h2>
@@ -126,7 +128,7 @@ export default function ShowInfo({ show, handleExitClick }) {
                                 </span>
                                 <Rating name="half-rating-read" defaultValue={4} precision={0.5} size="small" readOnly /> {/*ispraviti na rating serije ili ako ne postoji da to pise?*/}
                             </div>
-                            <div className="flex items-center gap-x-6 mb-5">
+                            <div className="flex flex-wrap items-center gap-x-6 mb-5">
                                 {show.genres.map((genre) => (
                                     <span className="text-white opacity-80">{genre.name}</span>
                                 ))}

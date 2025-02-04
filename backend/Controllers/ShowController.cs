@@ -91,7 +91,8 @@ public class ShowController : ControllerBase
         return Ok($"Nova ocena je {newRating}");
 
     }
-    [Authorize(Roles = "User")]
+   // [Authorize(Roles = "User")]
+   [AllowAnonymous]
     [HttpGet("GetRecommendations/{username}")] //nije testirano
     public async Task<IActionResult> GetRecommendations(string username)
     {
@@ -99,7 +100,8 @@ public class ShowController : ControllerBase
         return Ok(shows);
     }
 
-    [Authorize(Roles = "User")]
+    //[Authorize(Roles = "User")]
+    [AllowAnonymous]
     [HttpGet("FriendsWatchList/{username}")]//nije testirano
     public async Task<IActionResult> FriendsWatchList(string username)
     {

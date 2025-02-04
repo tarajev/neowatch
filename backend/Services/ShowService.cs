@@ -14,6 +14,8 @@ public class ShowService
         _driver = driver;
     }
 
+#region CRUD
+
     /*
         public async Task<Show?> GetShowByTitleAsync(string title)
         {
@@ -103,7 +105,7 @@ public class ShowService
 
         var showFound = await client.Cypher.Match("(s:Show {title: $title})").Return((s) => s.As<Show>()).ResultsAsync;
 
-        if (showFound == null)
+        if (showFound != null)
             return null;
 
         // merge proveri da li postoji pre kreiranja
@@ -286,6 +288,8 @@ public class ShowService
         return result.First();
 
     }
+
+    #endregion
     public async Task<Double> UpdateTheRating(string title, double rating)
     {
         using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
@@ -315,6 +319,7 @@ public class ShowService
         return result.First();
     }
 
+#region Recommendations
     public async Task<List<Show>> RecommendTVShows(string username)
     {
 
@@ -323,17 +328,19 @@ public class ShowService
 
         var query = client.Cypher
              .Match("(u:User {username: $username})-[r:WATCHED]->(s:Show)<-[:WATCHED]-(other:User)")
+             .Where("u <> other AND r.rating >= 4")
              .WithParam("username", username)
-             .Where("u <> other AND r.rating >= 7")
              .With("u, other") //sad se nadalje koriste samo ovi korisnici koji su pronadjeni
              .Match("(other)-[w:WATCHED]->(recommended:Show)")
-             .Where("NOT (u)-[w:WATCHED]->(recommended) AND w.rating >= 7")
+             .Where("w.rating >= 3 AND NOT (u)-[:WATCHED]->(recommended)")
              .With("recommended, count(*) AS count") //spaja seriju sa brojem njenih pojavljivanja "u jedan red"
              .OrderByDescending("count")
              .Limit(10)
              .Return((recommended) => recommended.As<Show>());
 
         var result = await query.ResultsAsync;
+
+        Console.WriteLine("result: " + result.First().title);
 
         return result.ToList();
     }
@@ -345,20 +352,24 @@ public class ShowService
         await client.ConnectAsync();
 
         var query = client.Cypher
-             .Match("(u:User {username: $username})-[f:FOLLOWING]->(friend:User)")
+             .Match("(u:User {username: $username})-[f:FOLLOWS]->(friend:User)")
              .WithParam("username", username)
              .With("u, friend")
-             .Match("(friend)-[w:WATCHED]->(s:Show)") //mozemo da prepravimo na IS_WATCHING
-             .Where("NOT (u)-[w:WATCHED]->(s) AND w.rating >= 8")
+             .Match("(friend)-[:WATCHED|WATCHING]->(s:Show)") //mozemo da prepravimo na IS_WATCHING
+             .Where("NOT (u)-[:WATCHED]->(s) AND s.rating >= 3.5")
              .With("s, count(*) AS count") //spaja seriju sa brojem njenih pojavljivanja "u jedan red"
              .OrderByDescending("count")
              .Limit(10)
-             .Return((recommended) => recommended.As<Show>());
+             .Return((s) => s.As<Show>());
 
         var result = await query.ResultsAsync;
 
         return result.ToList();
     }
+
+    #endregion
+
+    #region Search
     public async Task<List<Show>> SearchShowsByGenre(List<string> genres)
     {
 
@@ -518,7 +529,7 @@ public class ShowService
     }
 
 
-
+#endregion
 
     /*
         public async Task<List<Show>> SearchShowsAsync(string query)
