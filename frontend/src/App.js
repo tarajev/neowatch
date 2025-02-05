@@ -22,9 +22,6 @@ function App() {
   const value = { APIUrl, contextUser, contextSetUser };
 
   var storageUser = localStorage.getItem('NeowatchUser');
-  if (storageUser == null) {
-    storageUser = sessionStorage.getItem('NeowatchUser');
-  }
 
   if (contextUser.role == "Guest"  && storageUser) { //ako se osvezi stranica
     var storageUserJson = JSON.parse(storageUser);

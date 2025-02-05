@@ -35,7 +35,7 @@ export default function DrawRecommendationsPage() {
   // za svaki od slidera s tim što će onda izgledati drugačije pa ne znam
   const settings = {
     dots: true,
-    infinite: true, 
+    infinite: true,
     speed: 500,
     slidesToShow: 4,
     slidesToScroll: 1,
@@ -43,18 +43,24 @@ export default function DrawRecommendationsPage() {
   };
 
   const handleShowClick = (show) => {
-    setSelectedShow(show); // Postavlja odabranu seriju
+    if(show.cast && show.genres){
+      console.log("POSTOJI");
+      setSelectedShow(show);
+      return;
+    }
+    getAdditionalInfo(show);
+    console.log("NE POSTOJI");
   };
 
   const handleExitClick = () => {
     setSelectedShow(null); // Zatvara `ShowInfo`
   };
 
-   useEffect(() => {
-     getYetToWatchShows(contextUser.username);
-     getRecommendations(contextUser.username);
-     getWhatFriendsAreWatching(contextUser.username);
-    }, []);
+  useEffect(() => {
+    getYetToWatchShows(contextUser.username);
+    getRecommendations(contextUser.username);
+    getWhatFriendsAreWatching(contextUser.username);
+  }, []);
 
   const getYetToWatchShows = async (username) => {
     var route = `User/GetShowsToWatch`;
@@ -62,7 +68,7 @@ export default function DrawRecommendationsPage() {
       headers: {
         Authorization: `Bearer ${contextUser.jwtToken}`
       },
-      params: {username: username}
+      params: { username: username }
     })
       .then(result => {
         setYetToWatch(result.data)
@@ -103,13 +109,46 @@ export default function DrawRecommendationsPage() {
       })
   }
 
+
+  const getAdditionalInfo = async (show) => {
+    var route = `Show/GetTvShowGenresAndActors/${show.title}`;
+    await axios.get(APIUrl + route)
+      .then(result => {
+        const updatedShow = {
+          ...show,
+          cast: result.data.cast,
+          genres: result.data.genres
+        };
+
+        setSelectedShow(updatedShow);
+
+        setRecommendation(prevRecommendations =>
+          prevRecommendations.map(s =>
+            s.title === show.title ? updatedShow : s
+          ));
+
+        setWhatFriendsAreWatching(prevFriendsWatching =>
+          prevFriendsWatching.map(s =>
+            s.title === show.title ? updatedShow : s
+          ));
+
+        setYetToWatch(prevYetToWatch =>
+          prevYetToWatch.map(s =>
+            s.title === show.title ? updatedShow : s
+          ));
+      })
+      .catch(error => {
+        console.log(error);
+      })
+  }
+
   return (
     <>
       {selectedShow && (<ShowInfo handleExitClick={handleExitClick} show={selectedShow} />)}
       <div className="recommendations-page">
         {/* Red 1 */}
         {yetToWatch && yetToWatch.length > 0 ? (
-        <><h2 className="section-title">Don't forget to watch...</h2><Slider {...settings}>
+          <><h2 className="section-title">Don't forget to watch...</h2><Slider {...settings}>
             {yetToWatch.map((show) => (
               <div key={show.title} className="show-card transition-opacity duration-200 hover:opacity-50"> {/*hover ili rotacija po y? */}
                 <img src={`../images/${show.imageUrl}`} alt={show.title} className="show-image" onClick={() => handleShowClick(show)} />
@@ -117,33 +156,33 @@ export default function DrawRecommendationsPage() {
               </div>
             ))}
           </Slider></>
-       ) : (<></>)}
+        ) : (<></>)}
 
         {/* Red 2 */}
-       
-        {recommendations && recommendations.length > 0 ? ( 
-        <><h2 className="section-title">You might like...</h2>
-        <Slider {...settings}>
-          {recommendations.map((show) => (
-            <div key={show.id} className="show-card transition-opacity duration-200 hover:opacity-50">
-              <img src={`../images/${show.imageUrl}`} alt={show.title} className="show-image" onClick={() => handleShowClick(show)} />
-              <p className="show-title">{show.title}</p>
-            </div>
-          ))}
-        </Slider></>
+
+        {recommendations && recommendations.length > 0 ? (
+          <><h2 className="section-title">You might like...</h2>
+            <Slider {...settings}>
+              {recommendations.map((show) => (
+                <div key={show.id} className="show-card transition-opacity duration-200 hover:opacity-50">
+                  <img src={`../images/${show.imageUrl}`} alt={show.title} className="show-image" onClick={() => handleShowClick(show)} />
+                  <p className="show-title">{show.title}</p>
+                </div>
+              ))}
+            </Slider></>
         ) : (<></>)}
 
         {/* Red 3 */}
-        {whatFriendsAreWatching && whatFriendsAreWatching.length > 0 ? ( 
-        <><h2 className="section-title">What friends are watching...</h2>
-        <Slider {...settings}>
-          {whatFriendsAreWatching.map((show) => (
-            <div key={show.id} className="show-card transition-opacity duration-200 hover:opacity-50">
-              <img src={`../images/${show.imageUrl}`} alt={show.title} className="show-image" onClick={() => handleShowClick(show)} />
-              <p className="show-title">{show.title}</p>
-            </div>
-          ))}
-        </Slider></>): (<></>)}
+        {whatFriendsAreWatching && whatFriendsAreWatching.length > 0 ? (
+          <><h2 className="section-title">What friends are watching...</h2>
+            <Slider {...settings}>
+              {whatFriendsAreWatching.map((show) => (
+                <div key={show.id} className="show-card transition-opacity duration-200 hover:opacity-50">
+                  <img src={`../images/${show.imageUrl}`} alt={show.title} className="show-image" onClick={() => handleShowClick(show)} />
+                  <p className="show-title">{show.title}</p>
+                </div>
+              ))}
+            </Slider></>) : (<></>)}
       </div>
     </>
   );

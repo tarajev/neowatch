@@ -91,18 +91,17 @@ public class ShowController : ControllerBase
         return Ok($"Nova ocena je {newRating}");
 
     }
-   // [Authorize(Roles = "User")]
-   [AllowAnonymous]
-    [HttpGet("GetRecommendations/{username}")] //nije testirano
+
+    [Authorize(Roles = "User")]
+    [HttpGet("GetRecommendations/{username}")]
     public async Task<IActionResult> GetRecommendations(string username)
     {
         var shows = await _showService.RecommendTVShows(username);
         return Ok(shows);
     }
 
-    //[Authorize(Roles = "User")]
-    [AllowAnonymous]
-    [HttpGet("FriendsWatchList/{username}")]//nije testirano
+    [Authorize(Roles = "User")]
+    [HttpGet("FriendsWatchList/{username}")]
     public async Task<IActionResult> FriendsWatchList(string username)
     {
         var shows = await _showService.WhatFriendsAreWatching(username);
@@ -148,5 +147,20 @@ public class ShowController : ControllerBase
         if (shows.Count == 0)
             return BadRequest("Nije pronadjena nijedna serija");
         return Ok(shows);
+    }
+
+    [AllowAnonymous]
+    [HttpGet("GetTvShowGenresAndActors/{showTitle}")]
+    public async Task<IActionResult> GetTvShowGenresAndActors(string showTitle)
+    {
+        var result = await _showService.GetTvShowDetailsAsync(showTitle);
+        if (result == null)
+            return BadRequest("Došlo je do greške");
+
+        return Ok(new
+        {
+            genres = result.genres,
+            cast = result.cast
+        });
     }
 }

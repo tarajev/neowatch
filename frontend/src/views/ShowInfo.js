@@ -84,17 +84,17 @@ export default function ShowInfo({ show, handleExitClick }) {
         }); //ovde ako dodje do greške da se ispiše nešto?
     };
 
-   /* useEffect(() => { // Za click van forme
-        function handleClickOutside(event) {
-            if (formRef.current && !formRef.current.contains(event.target))
-                handleExitClick();
-        }
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, []);*/
+    /* useEffect(() => { // Za click van forme
+         function handleClickOutside(event) {
+             if (formRef.current && !formRef.current.contains(event.target))
+                 handleExitClick();
+         }
+ 
+         document.addEventListener('mousedown', handleClickOutside);
+         return () => {
+             document.removeEventListener('mousedown', handleClickOutside);
+         };
+     }, []);*/
 
     return (
         <> {addReview && <WriteAReview handleExitClick={handleExitAddReview} tvShowName={show.title}></WriteAReview>}
@@ -135,12 +135,19 @@ export default function ShowInfo({ show, handleExitClick }) {
                             </div>
                             <div className="w-fit ">
                                 <p className="text-white opacity-60 break-normal">{show.desc}</p></div>
-                            <div className="flex flex-wrap gap-x-2 mt-4 h-4 ">
-                                <span className="text-white opacity-80 font-semibold mr-1">Cast:</span> {/*nešto da se uradi povodom toga da ne ispisuje sve glumce već samo par */}
+                            <div className="flex flex-wrap gap-x-2 mt-4 h-4">
+                                <span className="text-white opacity-80 font-semibold mr-1">Cast:</span>
                                 {show.cast.map((a, index) => (
-                                    <span key={index} className="text-white opacity-80 inline truncate max-w-xs">{a.actor.name}{index < show.cast.length - 1 && ", "}</span>
+                                    <span key={index} className="group text-white opacity-80 inline-block max-w-xs cursor-pointer relative">
+                                        {a.actor.name}{index < show.cast.length - 1 && ", "}
+                                        <div className="absolute inline-block inset-x-0 bottom-full mb-1 w-max fade-in !bg-gray-900 !bg-opacity-100 !shadow-sm text-white text-xs p-2 rounded group-hover:block hidden duration-300 z-[555]" >
+                                            {a.role}
+                                            <span className="absolute left-1/2 transform -translate-x-1/2 bottom-[-5px] w-0 h-0 border-l-8 border-r-8 border-t-8 border-t-gray-900 border-transparent"></span>
+                                        </div>
+                                    </span>
                                 ))}
                             </div>
+
                         </div>
                     </div>
                 </div>

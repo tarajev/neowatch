@@ -14,7 +14,7 @@ public class ShowService
         _driver = driver;
     }
 
-#region CRUD
+    #region CRUD
 
     /*
         public async Task<Show?> GetShowByTitleAsync(string title)
@@ -319,7 +319,37 @@ public class ShowService
         return result.First();
     }
 
-#region Recommendations
+    public async Task<dynamic?> GetTvShowDetailsAsync(string showTitle)
+    {
+        using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
+        await client.ConnectAsync();
+
+        var query = client.Cypher
+       .Match("(s:Show {title: $title})")
+       .OptionalMatch("(g:Genre)<-[:IN_GENRE]-(s)")
+       .OptionalMatch("(a:Actor)-[r:ACTED_IN]->(s)")
+       .WithParam("title", showTitle)
+       .With("COLLECT(DISTINCT g) AS genres, COLLECT(DISTINCT { actor: a, role: r.role }) AS acted")
+       .Return((genres, acted) => new
+       {
+           Genres = genres.As<List<Genre>>(),
+           Actors = acted.As<List<ActedIn>>()
+       });
+
+        var result = await query.ResultsAsync;
+        var details = result.FirstOrDefault();
+
+        if (details == null)
+            return null;
+
+        return new
+        {
+            genres = details.Genres,
+            cast = details.Actors
+        };
+    }
+
+    #region Recommendations
     public async Task<List<Show>> RecommendTVShows(string username)
     {
 
@@ -335,7 +365,7 @@ public class ShowService
              .Where("w.rating >= 3 AND NOT (u)-[:WATCHED]->(recommended)")
              .With("recommended, count(*) AS count") //spaja seriju sa brojem njenih pojavljivanja "u jedan red"
              .OrderByDescending("count")
-             .Limit(10)
+             .Limit(15)
              .Return((recommended) => recommended.As<Show>());
 
         var result = await query.ResultsAsync;
@@ -359,7 +389,7 @@ public class ShowService
              .Where("NOT (u)-[:WATCHED]->(s) AND s.rating >= 3.5")
              .With("s, count(*) AS count") //spaja seriju sa brojem njenih pojavljivanja "u jedan red"
              .OrderByDescending("count")
-             .Limit(10)
+             .Limit(15)
              .Return((s) => s.As<Show>());
 
         var result = await query.ResultsAsync;
@@ -529,7 +559,7 @@ public class ShowService
     }
 
 
-#endregion
+    #endregion
 
     /*
         public async Task<List<Show>> SearchShowsAsync(string query)
