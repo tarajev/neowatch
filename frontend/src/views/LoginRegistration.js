@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { Link, Exit, FormInput, Password, FormButton, Checkbox } from '../components/BasicComponents';
-import CircularProgress from '@mui/material/CircularProgress';
 import logo from '../resources/img/neowatchlogo.png';
 import '../assets/colors.css';
 import '../assets/animations.css';
@@ -194,7 +193,6 @@ export function DrawLogin({ onRegisterClick, handleLoginClick }) {
 
   const [isEmailValid, setIsEmailValid] = useState(true);
   const [emailTouched, setEmailTouched] = useState(false);
-  const [rememberLogin, setRememberLogin] = useState(false);
   const [forgottenInfo, setForgottenInfo] = useState(false);
   const [forgottenInfoSent, setForgottenInfoSent] = useState(false);
   const [forgottenInfoError, setForgottenInfoError] = useState(null);
@@ -223,10 +221,6 @@ export function DrawLogin({ onRegisterClick, handleLoginClick }) {
     setEmailTouched(true);
     setIsEmailValid(validateEmail(email));
   };
-
-  const handleRememberLogin = () => {
-    setRememberLogin(!rememberLogin);
-  }
 
   const handleLoginSubmit = async (event) => {
     event.preventDefault();

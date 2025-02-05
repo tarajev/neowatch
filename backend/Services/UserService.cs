@@ -37,9 +37,7 @@ public class UserService
         Console.WriteLine($"Found: {result?.FirstOrDefault()?.username}");
         User? user = result?.FirstOrDefault();
 
-        if (user != null)
-            user.password = ""; //treba da se hashuje ovo lol 
-
+        //treba da se hashuje sifra 
         return user;
     }
 
@@ -559,7 +557,7 @@ public class UserService
 
     #endregion
 
-    public async Task<(int WatchedCount, int WatchingCount, int FollowersCount)> GetUserStatsAsync(string username)
+    public async Task<(int WatchedCount, int WatchingCount, int PlanToWatchCount, int FollowersCount)> GetUserStatsAsync(string username)
     {
         using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
         await client.ConnectAsync();
@@ -569,12 +567,14 @@ public class UserService
             .WithParam("username", username)
             .OptionalMatch("(u)-[:WATCHED]->(w:Show)")
             .OptionalMatch("(u)-[:WATCHING]->(q:Show)")
+            .OptionalMatch("(u)-[:YET_TO_WATCH]->(p:Show)")
             .OptionalMatch("(u)<-[:FOLLOWS]-(f:User)")
             // Vraćanje podataka o broju serija i korisnika koji prate
-            .Return((w, q, f) => new
+            .Return((w, q, p, f) => new
             {
                 WatchedCount = w.Count(),
                 WatchingCount = q.Count(),
+                PlanToWatchCount = p.Count(),
                 FollowersCount = f.Count()
             });
 
@@ -584,8 +584,33 @@ public class UserService
         Console.WriteLine("DATA:" + data);
 
         if (data != null)
-            return ((int)data.WatchedCount, (int)data.WatchingCount, (int)data.FollowersCount);
+            return ((int)data.WatchedCount, (int)data.WatchingCount, (int)data.PlanToWatchCount, (int)data.FollowersCount);
 
-        return (0, 0, 0);
+        return (0, 0, 0, 0);
+    }
+
+    public async Task<bool> UpdateUserProfilePictureAsync(string username, string fileUrl)
+    {
+        try
+        {
+            using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
+            await client.ConnectAsync();
+
+            var query = client.Cypher
+                .Match("(u:User {username: $username})")
+                .WithParam("username", username)
+                .Set("u.picture = $fileUrl")
+                .WithParam("fileUrl", fileUrl)
+                .Return((u) => u.As<User>());
+
+            var result = await query.ResultsAsync;
+
+            return result.Any();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating profile picture: {ex.Message}");
+            return false;
+        }
     }
 }

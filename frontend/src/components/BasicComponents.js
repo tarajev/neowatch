@@ -116,11 +116,11 @@ export function FileUpload({ className, width, height, text, buttonText, setPict
     <>
       <div className='hidden sm:flex items-baseline'>
         <p className='sm:mt-4 mr-1'>{text}</p>
-        <p className='truncate'>{fileName ? fileName : ""}</p>
+        <p className='truncate text-white'>{fileName ? fileName : ""}</p>
       </div>
       <div className={className}>
         <MUIButton
-          style={{ height: height, width: width, backgroundColor: "#2dacdf" }}
+          style={{ height: height, width: width, backgroundColor: "#2e1065" }}
           component="label"
           role={undefined}
           variant="contained"
@@ -132,7 +132,7 @@ export function FileUpload({ className, width, height, text, buttonText, setPict
         </MUIButton>
       </div>
       <div className="flex justify-center mt-2 sm:hidden">
-        <p className='truncate'>{fileName ? `Slika: ${fileName}` : ""}</p>
+        <p className='truncate text-white'>{fileName ? `Slika: ${fileName}` : ""}</p>
       </div>
       {errorMessage.length > 0 && <p className='text-red-600'>{errorMessage}</p>}
     </>

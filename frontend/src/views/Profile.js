@@ -3,10 +3,14 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Page, Link } from '../components/BasicComponents'
 import AuthorizationContext from '../context/AuthorizationContext'
 import axios from 'axios'
-import profilePhoto from "../images/profilepicture.jpg";
 import ColorLine from "../components/ColorLine"
 import CollapsiblePanel from '../components/CollapsiblePanel';
 import ShowInfo from './ShowInfo';
+import DrawEditProfile from './EditProfile'
+
+import iconGear from "../resources/img/icon-gear.png"
+import iconSearch from "../resources/img/icon-search.png"
+import iconUser from '../resources/img/icon-user.png'
 
 import breakingBadImage from "../images/breakingbad.jpg";
 import strangerThingsImage from "../images/strangerthings.jpg";
@@ -16,9 +20,12 @@ import friendsImage from "../images/friends.jpg";
 
 export default function DrawProfile() {
   const { APIUrl, contextUser } = useContext(AuthorizationContext);
+  const [userInfo, setUserInfo] = useState(null);
   const [userStats, setUserStats] = useState(null);
   const [overlayActive, setOverlayActive] = useState(false); // Potrebno za prevenciju background-tabovanja kada je forma aktivna
   const [showShowStats, setShowShowStats] = useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [showSearchUsers, setSearchingForUsers] = useState(false);
 
   const shows = [ //privremeno naravno
     { id: 1, title: "Breaking Bad", image: breakingBadImage, numberOfSeasons: 5, rating: 9.5, cast: [{ actor: { name: "Bryan Cranston" } }, { actor: { name: "Aaron Paul" } }, { actor: { name: "Anna Gunn" } }], genres: ["Crime", "Drama", "Thriller"], desc: "A high school chemistry teacher turned methamphetamine producer partners with a former student to build a drug empire.", year: 2008 },
@@ -29,14 +36,38 @@ export default function DrawProfile() {
   ];
 
   useEffect(() => {
-    console.log(contextUser.role);
-    if (contextUser.role == "User")
+    if (contextUser.role == "User") {
+      getUserInfo(contextUser.username);
       getUserStats(contextUser.username);
+    }
   }, []);
 
   useEffect(() => {
     console.log("Updated userStats:", userStats);
   }, [userStats]);
+
+  useEffect(() => {
+    console.log("Updated userInfo:", userInfo);
+  }, [userInfo]);
+
+  const getUserInfo = async (username) => {
+    var route = `User/GetUserByUsername/${username}`;
+    await axios.get(APIUrl + route, {
+      headers: {
+        Authorization: `Bearer ${contextUser.jwtToken}`
+      }
+    })
+      .then(result => {
+        setUserInfo(result.data);
+      })
+      .catch(error => {
+        console.log(error);
+      })
+  }
+
+  useEffect(() => {
+    console.log(`http://localhost:5227${userInfo?.picture}`);
+  }, [userInfo?.picture])
 
   const getUserStats = async (username) => {
     var route = `User/GetUserStats/${username}`;
@@ -56,12 +87,13 @@ export default function DrawProfile() {
   return (
     <Page loading={true} overlayActive={overlayActive} overlayHandler={setOverlayActive}>
       {showShowStats && <ShowInfo show={shows[1]} handleExitClick={() => setShowShowStats(false)} />}
+      {showEditProfile && <DrawEditProfile handleExitClick={() => setShowEditProfile(false)} user={contextUser} />}
 
       {/* TOP SECTION */}
       <div className='grid grid-cols-12 gap-4 h-44 mb-4'>
         <div className='col-span-2 bg-indigo-950 border border-violet-900 rounded-xl content-center '>
-          <img className='max-w-36 max-h-36 justify-self-center border border-violet-900 rounded-l' src={profilePhoto} />
-          <p className='text-gray-400 font-bold text-center p-3 -mb-3'>Username placeholder</p>
+          <img className={`max-w-36 max-h-36 justify-self-center border border-violet-900 rounded-l ${userInfo?.picture == null && "filter-white w-28"}`} src={userInfo?.picture != null ? `http://localhost:5227${userInfo?.picture}` : iconUser} />
+          <p className='text-gray-400 font-bold text-center p-3 -mb-3'>{userInfo?.username ?? "loading..."}</p>
         </div>
         <div className='col-span-10'>
           <div className='grid grid-cols-3 gap-4 text-gray-400 text-center'>
@@ -69,28 +101,28 @@ export default function DrawProfile() {
               Show Statistics
             </div>
             <div className='bg-indigo-950 border border-violet-900 rounded-xl'>
-              <p className='section-title !text-6xl'>12</p>
+              <p className='section-title !text-6xl'>{userStats?.watchingCount}</p>
               <div className='flex bg-indigo-950 border-t mx-4 py-1 border-violet-900 justify-center items-center'>
                 <span className='bg-green-700 w-3 h-3 rounded-full mr-1' />
                 <span>Watching</span>
               </div>
             </div>
             <div className='bg-indigo-950 border border-violet-900 rounded-xl'>
-              <p className='section-title !text-6xl'>35</p>
+              <p className='section-title !text-6xl'>{userStats?.watchedCount}</p>
               <div className='flex bg-indigo-950 border-t mx-4 py-1 border-violet-900 justify-center items-center'>
                 <span className='bg-blue-700 w-3 h-3 rounded-full mr-1' />
                 <span>Completed</span>
               </div>
             </div>
             <div className='bg-indigo-950 border border-violet-900 rounded-xl'>
-              <p className='section-title !text-6xl'>56</p>
+              <p className='section-title !text-6xl'>{userStats?.planToWatchCount}</p>
               <div className='flex bg-indigo-950 border-t mx-4 py-1 border-violet-900 justify-center items-center'>
                 <span className='bg-gray-700 w-3 h-3 rounded-full mr-1' />
                 <span>Plan to Watch</span>
               </div>
             </div>
             <div className='col-span-3 align-bottom'>
-              <ColorLine values={[12, 35, 56]} />
+              <ColorLine values={[userStats?.watchingCount, userStats?.watchedCount, userStats?.planToWatchCount]} />
             </div>
           </div>
         </div>
@@ -98,12 +130,22 @@ export default function DrawProfile() {
 
       <div className='grid grid-cols-11 text-gray-400 mt-6'>
         <div className='col-span-8 bg-indigo-950 border border-violet-900 rounded-xl mr-3 px-3 py-1'>
-          <p>Neki opis ovog korisnika koji je on sam stavio. Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
+          <p>{userInfo?.bio ?? "User has no bio."}</p>
         </div>
-        <div className='col-span-3 bg-indigo-950 border border-violet-900 rounded-xl ml-1 px-3 py-1 h-fit'>
-          <p className='section-title !text-2xl justify-self-center'>102 followers</p>
-          <div className='justify-self-center'>
-            <Link>Follow this user</Link>
+        <div className='col-span-3'>
+          <div className='bg-indigo-950 border border-violet-900 rounded-xl ml-1 px-3 py-1 h-fit'>
+            <p className='section-title !text-2xl justify-self-center'>{userStats?.followersCount} followers</p>
+            <div className='justify-self-center'>
+              <Link>Follow this user</Link>
+            </div>
+          </div>
+          <div className='bg-indigo-950 border border-violet-900 rounded-xl ml-1 px-3 mt-4 py-1 h-fit flex items-center justify-center'>
+            <img src={iconGear} className='filter-white w-6 mr-2' />
+            <Link onClick={() => setShowEditProfile(true)}>Edit profile</Link>
+          </div>
+          <div className='bg-indigo-950 border border-violet-900 rounded-xl ml-1 px-3 mt-4 py-1 h-fit flex items-center justify-center'>
+            <img src={iconSearch} className='filter-white w-6 mr-2' />
+            <Link onClick={() => setSearchingForUsers(true)}>Search for users...</Link>
           </div>
         </div>
       </div>
@@ -113,11 +155,11 @@ export default function DrawProfile() {
         <CollapsiblePanel title="Currently Watching:" open={true}>
           <div className='grid grid-cols-6 gap-4 p-2'>
             <SeriesSlot title='Breaking Bad' image={breakingBadImage} func={() => setShowShowStats(true)} />
-            <SeriesSlot title='Breaking Bad' image={breakingBadImage} />
-            <SeriesSlot title='Breaking Bad' image={breakingBadImage} />
-            <SeriesSlot title='Breaking Bad' image={breakingBadImage} />
-            <SeriesSlot title='Breaking Bad' image={breakingBadImage} />
-            <SeriesSlot title='Breaking Bad' image={breakingBadImage} />
+            <SeriesSlot title='Breaking Bad' image={breakingBadImage} func={() => setShowShowStats(true)} />
+            <SeriesSlot title='Breaking Bad' image={breakingBadImage} func={() => setShowShowStats(true)} />
+            <SeriesSlot title='Breaking Bad' image={breakingBadImage} func={() => setShowShowStats(true)} />
+            <SeriesSlot title='Breaking Bad' image={breakingBadImage} func={() => setShowShowStats(true)} />
+            <SeriesSlot title='Breaking Bad' image={breakingBadImage} func={() => setShowShowStats(true)} />
           </div>
         </CollapsiblePanel>
         <CollapsiblePanel title="Watched Shows:">
@@ -143,7 +185,7 @@ function SeriesSlot({ title, image, func, preventTab }) {
       tabIndex={preventTab ? -1 : 0}
       onClick={() => func()}
     >
-      <div className='border border-violet-900 rounded-xl'>
+      <div className='border border-violet-900 hover:shadow-md hover:shadow-violet-500/50 hover:bg-violet-900 transition-all rounded-xl'>
         <img src={image} className='h-64 pt-2 px-2 rounded-2xl' />
         <p className='justify-self-center p-1 text-center'>{title}</p>
       </div>

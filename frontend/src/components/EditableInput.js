@@ -45,18 +45,20 @@ export default function EditableInput({ initialValue, preventTab, label, setValu
           spellCheck={false}
           multiline={multiline}
           sx={{
+            input: { color: 'white' },
             "& label.Mui-focused": {
-              color: "#5700a2"
+              color: "gray"
             },
             "& .MuiInput-underline:after": {
-              borderBottomColor: "#5700a2"
+              borderBottomColor: "white"
             }
           }}
         />
       ) : (
         <div>
-          <span className="mr-2 font-semibold text-[#5700a2]">{label}</span> <span className="mr-2 break-normal text-wrap">{newValue}</span>
-          <IconButton sx={{ color: '#5700a2', mb: .5 }} onClick={handleEditClick} tabIndex={preventTab ? -1 : 0} aria-label="edit" size="small" >
+          <span className="mr-2 font-semibold text-white">{label}</span> 
+          <span className="mr-2 break-normal text-gray-400 text-wrap">{newValue}</span>
+          <IconButton sx={{ color: 'white', mb: .5 }} onClick={handleEditClick} tabIndex={preventTab ? -1 : 0} aria-label="edit" size="small" >
             <EditIcon fontSize="inherit" />
           </IconButton>
         </div>
