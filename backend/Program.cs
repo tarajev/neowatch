@@ -105,6 +105,7 @@ if (app.Environment.IsDevelopment())
 app.UseRouting();
 
 app.UseCors("CORS");
+app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();

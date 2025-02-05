@@ -223,8 +223,48 @@ public class UserController : ControllerBase
         {
             data.WatchedCount,
             data.WatchingCount,
+            data.PlanToWatchCount,
             data.FollowersCount
         });
+    }
+
+    [HttpPut("UploadProfilePicture/{username}")]
+    public async Task<IActionResult> UploadProfilePicture(IFormFile file, string username)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest("No file uploaded");
+
+        if (file.Length > 1000000)
+            return BadRequest("File size too large!");
+
+        var profile = await _userService.GetUserAsync(username);
+        if (profile == null)
+            return NotFound("User doesn't exist.");
+
+        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "UploadedFiles");
+        if (!Directory.Exists(uploadsFolder))
+            Directory.CreateDirectory(uploadsFolder);
+
+        var fileExtension = Path.GetExtension(file.FileName);
+        var fileName = username + fileExtension;
+        var filePath = Path.Combine(uploadsFolder, fileName);
+
+        if (System.IO.File.Exists(filePath))
+            System.IO.File.Delete(filePath);
+
+        using (var stream = new FileStream(filePath, FileMode.Create))
+        {
+            await file.CopyToAsync(stream);
+        }
+
+        var fileUrl = $"/UploadedFiles/{fileName}";
+
+        bool updateSuccess = await _userService.UpdateUserProfilePictureAsync(username, fileUrl);
+
+        if (!updateSuccess)
+            return StatusCode(500, "Failed to update user profile picture.");
+
+        return Ok(new { fileUrl });
     }
 }
 
@@ -240,5 +280,5 @@ public class ReviewInfo //mozemo da dodamo ovo u watched isto kako god ne znam
     public required string Username { get; set; }
     public required string Title { get; set; }
     public required int Rating { get; set; }
-    public string? Comment  { get; set; } 
+    public string? Comment { get; set; }
 }
