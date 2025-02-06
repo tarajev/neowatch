@@ -19,7 +19,7 @@ public class AuthController : ControllerBase
     [HttpPost("Login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var user = await AuthService.GetUserByEmailAsync(request.Email);
+        var user = await AuthService.GetUserByLoginInfoAsync(request.Email, request.Password);
 
         if (user != null)
         {
