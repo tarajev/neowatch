@@ -41,6 +41,30 @@ public class UserService
         return user;
     }
 
+    public async Task<List<User>?> SearchForUsersAsync(string search)
+    {
+        using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
+        await client.ConnectAsync();
+
+        var query = client.Cypher
+            .Match("(u:User)")
+            .Where("u.username CONTAINS $searchTerm")
+            .WithParam("searchTerm", search)
+            .Return(u => u.As<User>());
+
+        var result = await query.ResultsAsync;
+
+        if (!result.Any())
+        {
+            Console.WriteLine($"No users found containing '{search}' in their username.");
+            return null;
+        }
+
+        Console.WriteLine($"Found {result.Count()} users containing '{search}' in their username.");
+        return result.ToList();
+    }
+
+
     public async Task<User?> CreateUserAsync(User user)
     {
         using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
@@ -86,27 +110,79 @@ public class UserService
         var existingUser = await client.Cypher
             .Match("(u:User {username: $username})")
             .WithParam("username", user.username)
-            .Set("u.password = $password, u.picture = $picture, u.bio = $bio")
-            .WithParams(new
-            {
-                user.password,
-                user.picture,
-                user.bio,
-            })
             .Return(u => u.As<User>())
             .ResultsAsync;
 
-        Console.WriteLine(existingUser);
-
-        if (existingUser.Any())
+        if (!existingUser.Any())
         {
-            Console.WriteLine("User updated successfully.");
-            return user;
-        }
-        else
-        {
-            Console.WriteLine("Cannot update user - No user with the given username found.");
+            Console.WriteLine("Cannot update user password - user with given username cannot be found.");
             return null;
+        }
+
+        User dbUser = existingUser.First();
+
+        if (dbUser.bio != user.bio)
+        {
+            await client.Cypher
+                .Match("(u:User {username: $username})")
+                .WithParam("username", user.username)
+                .Set("u.bio = $newBio")
+                .WithParam("newBio", user.bio)
+                .ExecuteWithoutResultsAsync();
+
+            Console.WriteLine("User bio updated successfully.");
+        }
+
+        if (dbUser.password != user.password)
+        {
+            var dbUserNPResult = await client.Cypher
+                .Match("(u:User {username: $username})")
+                .WithParam("username", user.username)
+                .Set("u.password = $newPassword")
+                .WithParam("newPassword", user.password)
+                .Return(u => u.As<User>())
+                .ResultsAsync;
+
+            if (dbUserNPResult.Any())
+            {
+                User dbUserNP = dbUserNPResult.First();
+
+                if (user.password == dbUserNP.password)
+                    Console.WriteLine("Password updated.");
+                else
+                    Console.WriteLine("Password failed to update.");
+            }
+            else
+            {
+                Console.WriteLine("Internal database error - Username with changed password could not be found.");
+            }
+        }
+
+        return dbUser;
+    }
+
+    public async Task<bool> UpdateUserProfilePictureAsync(string username, string fileUrl)
+    {
+        try
+        {
+            using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
+            await client.ConnectAsync();
+
+            var query = client.Cypher
+                .Match("(u:User {username: $username})")
+                .WithParam("username", username)
+                .Set("u.picture = $fileUrl")
+                .WithParam("fileUrl", fileUrl)
+                .Return((u) => u.As<User>());
+
+            var result = await query.ResultsAsync;
+
+            return result.Any();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating profile picture: {ex.Message}");
+            return false;
         }
     }
 
@@ -203,6 +279,33 @@ public class UserService
 
         return followings.ToList();
     }
+
+    public async Task<bool?> IsUserFollowingAsync(string username, string userToCheck)
+    {
+        using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
+        await client.ConnectAsync();
+
+        var usersExist = await client.Cypher
+            .Match("(u1:User {username: $username}), (u2:User {username: $userToCheck})")
+            .WithParams(new { username, userToCheck })
+            .Return((u1, u2) => new { User1 = u1.As<User>(), User2 = u2.As<User>() })
+            .ResultsAsync;
+
+        if (!usersExist.Any())
+        {
+            Console.WriteLine("One or both users do not exist.");
+            return null;
+        }
+
+        var isFollowing = await client.Cypher
+            .Match("(u1:User {username: $username})-[r:FOLLOWS]->(u2:User {username: $userToCheck})")
+            .WithParams(new { username, userToCheck })
+            .Return(r => r.Count())
+            .ResultsAsync;
+
+        return isFollowing.SingleOrDefault() > 0;
+    }
+
 
     public async Task<bool> FollowUserAsync(string username, string followsUser)
     {
@@ -587,30 +690,5 @@ public class UserService
             return ((int)data.WatchedCount, (int)data.WatchingCount, (int)data.PlanToWatchCount, (int)data.FollowersCount);
 
         return (0, 0, 0, 0);
-    }
-
-    public async Task<bool> UpdateUserProfilePictureAsync(string username, string fileUrl)
-    {
-        try
-        {
-            using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
-            await client.ConnectAsync();
-
-            var query = client.Cypher
-                .Match("(u:User {username: $username})")
-                .WithParam("username", username)
-                .Set("u.picture = $fileUrl")
-                .WithParam("fileUrl", fileUrl)
-                .Return((u) => u.As<User>());
-
-            var result = await query.ResultsAsync;
-
-            return result.Any();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error updating profile picture: {ex.Message}");
-            return false;
-        }
     }
 }

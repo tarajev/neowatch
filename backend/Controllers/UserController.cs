@@ -29,7 +29,23 @@ public class UserController : ControllerBase
     public async Task<IActionResult> GetUserByUsername(string username)
     {
         var user = await _userService.GetUserAsync(username);
+
+        if (user == null)
+            return NotFound("No user with given username found.");
+            
         return Ok(user);
+    }
+
+    [AllowAnonymous]
+    [HttpGet("FindUsers/{search}")]
+    public async Task<IActionResult> FindUsers(string search)
+    {
+        List<User>? users = await _userService.SearchForUsersAsync(search);
+
+        if (users == null || users?.Count == 0)
+            return NotFound("No users with given search term found.");
+            
+        return Ok(users);
     }
 
     [AllowAnonymous]
@@ -55,6 +71,45 @@ public class UserController : ControllerBase
             return BadRequest("Nije moguće izmeniti informacije korisnika.");
     }
 
+    [HttpPut("UploadProfilePicture/{username}")]
+    public async Task<IActionResult> UploadProfilePicture(IFormFile file, string username)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest("No file uploaded");
+
+        if (file.Length > 1000000)
+            return BadRequest("File size too large!");
+
+        var profile = await _userService.GetUserAsync(username);
+        if (profile == null)
+            return NotFound("User doesn't exist.");
+
+        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "UploadedFiles");
+        if (!Directory.Exists(uploadsFolder))
+            Directory.CreateDirectory(uploadsFolder);
+
+        var fileExtension = Path.GetExtension(file.FileName);
+        var fileName = username + fileExtension;
+        var filePath = Path.Combine(uploadsFolder, fileName);
+
+        if (System.IO.File.Exists(filePath))
+            System.IO.File.Delete(filePath);
+
+        using (var stream = new FileStream(filePath, FileMode.Create))
+        {
+            await file.CopyToAsync(stream);
+        }
+
+        var fileUrl = $"/UploadedFiles/{fileName}";
+
+        bool updateSuccess = await _userService.UpdateUserProfilePictureAsync(username, fileUrl);
+
+        if (!updateSuccess)
+            return StatusCode(500, "Failed to update user profile picture.");
+
+        return Ok(new { fileUrl });
+    }
+
     [HttpDelete("DeleteUser")]
     public async Task<IActionResult> DeleteUser(string username)
     {
@@ -70,7 +125,7 @@ public class UserController : ControllerBase
 
     #region Following
 
-    [HttpGet("GetUserFollowers")]
+    [HttpGet("GetUserFollowers/{username}")]
     public async Task<IActionResult> GetUserFollowers(string username)
     {
         List<User>? users = await _userService.GetUserFollowersAsync(username);
@@ -81,7 +136,7 @@ public class UserController : ControllerBase
             return BadRequest("Korisnik sa zadatim korisničkim imenom ne postoji.");
     }
 
-    [HttpGet("GetUserFollowings")]
+    [HttpGet("GetUserFollowings/{username}")]
     public async Task<IActionResult> GetUserFollowings(string username)
     {
         List<User>? users = await _userService.GetUserFollowingsAsync(username);
@@ -92,14 +147,26 @@ public class UserController : ControllerBase
             return BadRequest("Korisnik sa zadatim korisničkim imenom ne postoji.");
     }
 
-    [HttpPut("FollowUser")]
+    [HttpGet("IsUserFollowing/{username}/{userToCheck}")]
+    
+    public async Task<IActionResult> IsUserFollowing(string username, string userToCheck)
+    {
+        bool? follows = await _userService.IsUserFollowingAsync(username, userToCheck);
+
+        if (follows != null)
+            return Ok(follows);
+        else
+            return BadRequest("");
+    }
+
+    [HttpPut("FollowUser/{username}/{userToFollow}")]
     public async Task<IActionResult> FollowUser(string username, string userToFollow)
     {
         bool followed = await _userService.FollowUserAsync(username, userToFollow);
         return Ok($"Korisnik je {(followed ? "uspešno" : "neuspešno")} zapraćen.");
     }
 
-    [HttpPut("UnfollowUser")]
+    [HttpPut("UnfollowUser/{username}/{userToUnfollow}")]
     public async Task<IActionResult> UnfollowUser(string username, string userToUnfollow)
     {
         bool unfollowed = await _userService.UnfollowUserAsync(username, userToUnfollow);
@@ -215,6 +282,7 @@ public class UserController : ControllerBase
 
     #endregion
 
+    [AllowAnonymous]
     [HttpGet("GetUserStats/{username}")]
     public async Task<IActionResult> GetUserStats(string username)
     {
@@ -226,45 +294,6 @@ public class UserController : ControllerBase
             data.PlanToWatchCount,
             data.FollowersCount
         });
-    }
-
-    [HttpPut("UploadProfilePicture/{username}")]
-    public async Task<IActionResult> UploadProfilePicture(IFormFile file, string username)
-    {
-        if (file == null || file.Length == 0)
-            return BadRequest("No file uploaded");
-
-        if (file.Length > 1000000)
-            return BadRequest("File size too large!");
-
-        var profile = await _userService.GetUserAsync(username);
-        if (profile == null)
-            return NotFound("User doesn't exist.");
-
-        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "UploadedFiles");
-        if (!Directory.Exists(uploadsFolder))
-            Directory.CreateDirectory(uploadsFolder);
-
-        var fileExtension = Path.GetExtension(file.FileName);
-        var fileName = username + fileExtension;
-        var filePath = Path.Combine(uploadsFolder, fileName);
-
-        if (System.IO.File.Exists(filePath))
-            System.IO.File.Delete(filePath);
-
-        using (var stream = new FileStream(filePath, FileMode.Create))
-        {
-            await file.CopyToAsync(stream);
-        }
-
-        var fileUrl = $"/UploadedFiles/{fileName}";
-
-        bool updateSuccess = await _userService.UpdateUserProfilePictureAsync(username, fileUrl);
-
-        if (!updateSuccess)
-            return StatusCode(500, "Failed to update user profile picture.");
-
-        return Ok(new { fileUrl });
     }
 }
 

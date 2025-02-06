@@ -7,6 +7,7 @@ import ColorLine from "../components/ColorLine"
 import CollapsiblePanel from '../components/CollapsiblePanel';
 import ShowInfo from './ShowInfo';
 import DrawEditProfile from './EditProfile'
+import DrawSearchUsers from './SearchUsers';
 
 import iconGear from "../resources/img/icon-gear.png"
 import iconSearch from "../resources/img/icon-search.png"
@@ -19,13 +20,19 @@ import theWitcherImage from "../images/thewitcher.jpg";
 import friendsImage from "../images/friends.jpg";
 
 export default function DrawProfile() {
+  const { username } = useParams();
   const { APIUrl, contextUser } = useContext(AuthorizationContext);
+
   const [userInfo, setUserInfo] = useState(null);
   const [userStats, setUserStats] = useState(null);
-  const [overlayActive, setOverlayActive] = useState(false); // Potrebno za prevenciju background-tabovanja kada je forma aktivna
+  const [userIsFollowed, setUserIsFollowed] = useState(false);
+
   const [showShowStats, setShowShowStats] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
-  const [showSearchUsers, setSearchingForUsers] = useState(false);
+  const [showSearchUsers, setShowSearchUsers] = useState(false);
+
+  const [overlayActive, setOverlayActive] = useState(false); // Potrebno za prevenciju background-tabovanja kada je forma aktivna
+  const navigate = useNavigate();
 
   const shows = [ //privremeno naravno
     { id: 1, title: "Breaking Bad", image: breakingBadImage, numberOfSeasons: 5, rating: 9.5, cast: [{ actor: { name: "Bryan Cranston" } }, { actor: { name: "Aaron Paul" } }, { actor: { name: "Anna Gunn" } }], genres: ["Crime", "Drama", "Thriller"], desc: "A high school chemistry teacher turned methamphetamine producer partners with a former student to build a drug empire.", year: 2008 },
@@ -36,11 +43,10 @@ export default function DrawProfile() {
   ];
 
   useEffect(() => {
-    if (contextUser.role == "User") {
-      getUserInfo(contextUser.username);
-      getUserStats(contextUser.username);
-    }
-  }, []);
+    getUserInfo(username);
+    getUserStats(username);
+    checkIfUserIsFollowing();
+  }, [username]);
 
   useEffect(() => {
     console.log("Updated userStats:", userStats);
@@ -49,6 +55,10 @@ export default function DrawProfile() {
   useEffect(() => {
     console.log("Updated userInfo:", userInfo);
   }, [userInfo]);
+
+  useEffect(() => {
+    console.log(`http://localhost:5227${userInfo?.picture}`);
+  }, [userInfo?.picture])
 
   const getUserInfo = async (username) => {
     var route = `User/GetUserByUsername/${username}`;
@@ -62,12 +72,15 @@ export default function DrawProfile() {
       })
       .catch(error => {
         console.log(error);
+        if (error.response) {
+          switch (error.response.status) {
+            case 404:
+              navigate("../NotFound");
+              break;
+          }
+        }
       })
   }
-
-  useEffect(() => {
-    console.log(`http://localhost:5227${userInfo?.picture}`);
-  }, [userInfo?.picture])
 
   const getUserStats = async (username) => {
     var route = `User/GetUserStats/${username}`;
@@ -84,10 +97,62 @@ export default function DrawProfile() {
       })
   }
 
+  const followUser = async () => {
+    var route = `User/FollowUser/${contextUser.username}/${username}`;
+    await axios.put(APIUrl + route, {}, {
+      headers: {
+        Authorization: `Bearer ${contextUser.jwtToken}`,
+        "Content-Type": "application/json"
+      }
+    })
+      .then(() => {
+        userStats.followersCount += 1;
+        setUserIsFollowed(true);
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  }
+
+  const unfollowUser = async () => {
+    var route = `User/UnfollowUser/${contextUser.username}/${username}`;
+    await axios.put(APIUrl + route, {}, {
+      headers: {
+        Authorization: `Bearer ${contextUser.jwtToken}`,
+        "Content-Type": "application/json"
+      }
+    })
+      .then(() => {
+        userStats.followersCount -= 1;
+        setUserIsFollowed(false);
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  }
+
+  const checkIfUserIsFollowing = async () => {
+    var route = `User/IsUserFollowing/${contextUser.username}/${username}`;
+    await axios.get(APIUrl + route, {
+      headers: {
+        Authorization: `Bearer ${contextUser.jwtToken}`,
+        "Content-Type": "application/json"
+      }
+    })
+      .then(result => {
+        console.log("Is following:", result.data);
+        setUserIsFollowed(result.data);
+      })
+      .catch(error => {
+        console.log("Error checking if user is following:", error);
+      });
+  }
+
   return (
-    <Page loading={true} overlayActive={overlayActive} overlayHandler={setOverlayActive}>
+    <Page loading={true} timeout={1000} overlayActive={overlayActive} overlayHandler={setOverlayActive}>
       {showShowStats && <ShowInfo show={shows[1]} handleExitClick={() => setShowShowStats(false)} />}
-      {showEditProfile && <DrawEditProfile handleExitClick={() => setShowEditProfile(false)} user={contextUser} />}
+      {showEditProfile && <DrawEditProfile handleExitClick={() => setShowEditProfile(false)} user={userInfo} />}
+      {showSearchUsers && <DrawSearchUsers handleExitClick={() => setShowSearchUsers(false)} />}
 
       {/* TOP SECTION */}
       <div className='grid grid-cols-12 gap-4 h-44 mb-4'>
@@ -134,18 +199,27 @@ export default function DrawProfile() {
         </div>
         <div className='col-span-3'>
           <div className='bg-indigo-950 border border-violet-900 rounded-xl ml-1 px-3 py-1 h-fit'>
-            <p className='section-title !text-2xl justify-self-center'>{userStats?.followersCount} followers</p>
-            <div className='justify-self-center'>
-              <Link>Follow this user</Link>
-            </div>
+            <p className='section-title !text-2xl !mb-0 justify-self-center'>{userStats?.followersCount} followers</p>
+            {contextUser.username !== username && contextUser.role != "Guest" ? (
+              userIsFollowed === true ? (
+                <div className="mt-2 justify-self-center">
+                  <Link onClick={unfollowUser}>Unfollow this user</Link>
+                </div>) : (
+                <div className="mt-2 justify-self-center">
+                  <Link onClick={followUser}>Follow this user</Link>
+                </div>)
+            ) : null}
           </div>
-          <div className='bg-indigo-950 border border-violet-900 rounded-xl ml-1 px-3 mt-4 py-1 h-fit flex items-center justify-center'>
-            <img src={iconGear} className='filter-white w-6 mr-2' />
-            <Link onClick={() => setShowEditProfile(true)}>Edit profile</Link>
-          </div>
+
+          {contextUser.username == username ? (
+            <div className='bg-indigo-950 border border-violet-900 rounded-xl ml-1 px-3 mt-4 py-1 h-fit flex items-center justify-center'>
+              <img src={iconGear} className='filter-white w-6 mr-2' />
+              <Link onClick={() => setShowEditProfile(true)}>Edit profile</Link>
+            </div>) : null}
+
           <div className='bg-indigo-950 border border-violet-900 rounded-xl ml-1 px-3 mt-4 py-1 h-fit flex items-center justify-center'>
             <img src={iconSearch} className='filter-white w-6 mr-2' />
-            <Link onClick={() => setSearchingForUsers(true)}>Search for users...</Link>
+            <Link onClick={() => setShowSearchUsers(true)}>Search for users...</Link>
           </div>
         </div>
       </div>

@@ -2,16 +2,20 @@ import React, { useState, useContext } from "react";
 import logo from '../resources/img/neowatchlogo.png';
 import { Link } from '../components/BasicComponents';
 import { DrawLogin, DrawRegistration } from "../views/LoginRegistration";
-import iconBurger from "../resources/img/burger-menu.png"
 import BurgerMenu from "./BurgerMenu";
 import AuthorizationContext from "../context/AuthorizationContext";
 import '../assets/colors.css'
 import '../assets/App.css'
 
+import iconBurger from "../resources/img/burger-menu.png"
+import iconUser from "../resources/img/icon-user.png"
+import { useNavigate } from "react-router-dom";
+
 export default function Header({ overlayActive, overlayHandler }) {
   const { contextUser, contextSetUser } = useContext(AuthorizationContext);
   const [showRegistration, setShowRegistration] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
+  const navigate = useNavigate();
 
   const toggleRegistration = () => {
     setShowRegistration(!showRegistration);
@@ -27,6 +31,11 @@ export default function Header({ overlayActive, overlayHandler }) {
       overlayHandler(!showLogin);
   };
 
+  const openProfile = (username) => {
+    navigate(`../profile/${username}`);
+    window.location.reload();
+  }
+  
   const handleLogout = () => {
     contextSetUser({
       username: "",
@@ -38,6 +47,7 @@ export default function Header({ overlayActive, overlayHandler }) {
     })
     localStorage.clear();
     sessionStorage.clear();
+    window.location.reload();
   }
 
   // TODO - BurgerMenu itemList da se uradi
@@ -64,12 +74,28 @@ export default function Header({ overlayActive, overlayHandler }) {
                 <Link className='mx-2 !text-gray-400' preventTab={overlayActive} onClick={handleLoginClick}>
                   Log in
                 </Link>
-              </>) :(<>
-                <Link className='mx-2 !text-gray-400' preventTab={overlayActive} onClick={handleLogout}>
+              </>) : null}
+
+            {contextUser.role == "User" ? (
+              <>
+                <Link className='mx-1 ml-2' onClick={() => openProfile(contextUser.username)} preventTab={overlayActive}>
+                  <div className="flex flex-wrap items-center">
+                    <img src={contextUser.picture != null ? `http://localhost:5227${contextUser.picture}` : iconUser} className="border border-indigo rounded-full w-7 h-7 mr-2" />
+                    <div className="text-nowrap truncate max-w-160">
+                      {contextUser.username}
+                    </div>
+                  </div>
+                </Link>
+                <span className="text-gray-400 mb-1 mx-1">|</span>
+              </>
+            ) : null}
+
+            {contextUser.role != "Guest" ? (
+              <>
+                <Link className='mx-2' preventTab={overlayActive} onClick={handleLogout}>
                   Log out
                 </Link>
-              </>)
-            }
+              </>) : null}
           </span>
         </div>
       </nav>

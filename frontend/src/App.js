@@ -6,6 +6,7 @@ import AuthorizationContext from './context/AuthorizationContext';
 import './App.css';
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import React, { useState } from 'react';
+import DrawNotFound from "./views/NotFound";
 
 function App() {
 
@@ -35,8 +36,9 @@ function App() {
           <Routes>
             <Route path="/" element={<MainPage />} />
             <Route path="/landingpage" element={<LandingPage />} />
-            <Route path="/profile" element={<Profile />} />
+            <Route path="/profile/:username" element={<Profile />} />
             <Route path="/moderatorpage" element={<ModeratorPage />} />
+            <Route path="NotFound" element={<DrawNotFound />} />
           </Routes>
         </BrowserRouter>
       </AuthorizationContext.Provider>

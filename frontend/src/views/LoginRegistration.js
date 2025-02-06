@@ -249,6 +249,8 @@ export function DrawLogin({ onRegisterClick, handleLoginClick }) {
         localStorage.setItem('NeoWatchExpiryDate', now);
 
         handleLoginClick();
+        setIsLoading(false);
+        window.location.reload();
       })
       .catch(error => {
         console.log(error);
