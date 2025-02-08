@@ -49,7 +49,7 @@ public class AuthController : ControllerBase
                 username = request.Username,
                 email = request.Email,
                 password = request.Password,
-                role = "User",
+                role = request.Role, // Izmenjeno zbog registrovanja moderatora
                 joinedDate = DateTime.Now
             };
 
@@ -88,5 +88,5 @@ public class RegisterInfo
     public required string Email { get; set; }
     public required string Username { get; set; }
     public required string Password { get; set; }
-
+    public required string Role { get; set; }
 }

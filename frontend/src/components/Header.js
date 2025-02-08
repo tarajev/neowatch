@@ -47,6 +47,8 @@ export default function Header({ overlayActive, overlayHandler }) {
     })
     localStorage.clear();
     sessionStorage.clear();
+
+    navigate("/");
     window.location.reload();
   }
 
@@ -80,7 +82,7 @@ export default function Header({ overlayActive, overlayHandler }) {
               <>
                 <Link className='mx-1 ml-2' onClick={() => openProfile(contextUser.username)} preventTab={overlayActive}>
                   <div className="flex flex-wrap items-center">
-                    <img src={contextUser.picture != null ? `http://localhost:5227${contextUser.picture}` : iconUser} className="border border-indigo rounded-full w-7 h-7 mr-2" />
+                    <img src={contextUser.picture != null ? `http://localhost:5227${contextUser.picture}` : iconUser} className={`${contextUser.picture == null && "filter-white"} border border-indigo rounded-full w-7 h-7 mr-2`} />
                     <div className="text-nowrap truncate max-w-160">
                       {contextUser.username}
                     </div>

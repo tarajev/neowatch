@@ -98,6 +98,20 @@ public class ShowService
         return null;
     }
 
+    public async Task<long> GetShowCountAsync()
+    {
+        using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
+        await client.ConnectAsync();
+
+        var query = client.Cypher
+            .Match("(s:Show)")
+            .Return((s) => s.Count());
+
+        var result = await query.ResultsAsync;
+
+        return result.Single();
+    }
+
     public async Task<Show?> CreateShowAsync(Show show) //treba izmeniti da prvo ide provera pa create
     {
         using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
@@ -515,7 +529,6 @@ public class ShowService
 
     public async Task<List<Show>> SearchShowsByTitle(string search)
     {
-
         using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
         await client.ConnectAsync();
 
@@ -527,12 +540,12 @@ public class ShowService
             .OptionalMatch("(s:Show)<-[r:ACTED_IN]-(a:Actor)")
             .With("s, COLLECT(DISTINCT g) AS genres, COLLECT(DISTINCT{actor: a, role: r.role}) AS actedIn")
             .Limit(40)
-             .Return((s, genres, actedIn) => new
-             {
-                 Show = s.As<Show>(),
-                 Genres = genres.As<List<Genre>>(),
-                 ActedIn = actedIn.As<List<ActedIn>>(),
-             });
+            .Return((s, genres, actedIn) => new
+            {
+                Show = s.As<Show>(),
+                Genres = genres.As<List<Genre>>(),
+                ActedIn = actedIn.As<List<ActedIn>>(),
+            });
 
         var result = await query.ResultsAsync;
 
@@ -557,7 +570,6 @@ public class ShowService
 
         return shows;
     }
-
 
     #endregion
 

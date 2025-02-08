@@ -59,18 +59,18 @@ export default function DrawAddProfile({ handleExitClick, handleUserCount }) {
           <div>
             <div>
               <div className='mb-4 w-full flex justify-center border-b border-violet-900'>
-                <p className='mb-2 text-xl text-gray-400'>Dodavanje moderatorskog naloga</p>
+                <p className='mb-2 text-xl text-gray-400'>Create a moderator account</p>
               </div>
 
               <div className='mb-4'>
                 <FormInput
-                  text="Korisničko Ime:"
+                  text="Username:"
                   required
                   value={username}
                   onChange={handleUsernameChange}
                 />
                 <FormInput
-                  text="Email:"
+                  text="E-Mail:"
                   required
                   value={email}
                   onBlur={handleEmailBlur}
@@ -78,19 +78,19 @@ export default function DrawAddProfile({ handleExitClick, handleUserCount }) {
                   alertCond={!isEmailValid && emailTouched}
                 />
                 <Password
-                  text="Šifra:"
+                  text="Password:"
                   required
                   visibility
                   value={password}
                   onChange={handlePasswordChange}
                 />
-                <FormButton disabled={!username || (!isEmailValid && emailTouched) || !password} text={"Dodaj moderatora"} />
+                <FormButton disabled={!username || (!isEmailValid && emailTouched) || !password} text={"Create Moderator"} />
               </div>
             </div>
 
             <span className="block text-sm text-gray-700">
               <span className="text-sm text-red-600">*</span>
-              Ova polja su obavezna.
+              These fields are required.
             </span>
           </div>
         </div>

@@ -83,7 +83,8 @@ export function DrawRegistration({ onLoginClick, exitRegistration, handleLoginCl
       await axios.post(APIUrl + "Auth/Register", {
         userName: userName,
         email: email,
-        password: password
+        password: password,
+        role: "User"
       })
         .then(response => {
           console.log(response);

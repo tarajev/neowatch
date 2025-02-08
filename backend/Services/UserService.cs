@@ -1,4 +1,5 @@
 using Neo4jClient;
+using Neo4jClient.Cypher;
 using NeoWatch.Model;
 
 namespace NeoWatch.Services;
@@ -41,6 +42,28 @@ public class UserService
         return user;
     }
 
+    public async Task<long[]> GetUserCountsAsync()
+    {
+        using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
+        await client.ConnectAsync();
+
+        var userQuery = client.Cypher
+            .Match("(u:User)")
+            .Where((User u) => u.role == "User")
+            .Return(u => u.Count());
+
+        var userCount = (await userQuery.ResultsAsync).Single();
+
+        var moderatorQuery = client.Cypher
+            .Match("(u:User)")
+            .Where((User u) => u.role == "Moderator")
+            .Return(u => u.Count());
+
+        var moderatorCount = (await moderatorQuery.ResultsAsync).Single();
+
+        return [userCount, moderatorCount];
+    }
+
     public async Task<List<User>?> SearchForUsersAsync(string search)
     {
         using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
@@ -61,6 +84,29 @@ public class UserService
         }
 
         Console.WriteLine($"Found {result.Count()} users containing '{search}' in their username.");
+        return result.ToList();
+    }
+
+    public async Task<List<User>?> SearchForUsersByEmailAsync(string search)
+    {
+        using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
+        await client.ConnectAsync();
+
+        var query = client.Cypher
+            .Match("(u:User)")
+            .Where("u.email CONTAINS $searchTerm")
+            .WithParam("searchTerm", search)
+            .Return(u => u.As<User>());
+
+        var result = await query.ResultsAsync;
+
+        if (!result.Any())
+        {
+            Console.WriteLine($"No users found containing '{search}' in their email.");
+            return null;
+        }
+
+        Console.WriteLine($"Found {result.Count()} users containing '{search}' in their email.");
         return result.ToList();
     }
 
@@ -92,7 +138,7 @@ public class UserService
                     user.email,
                     user.password,
                     joinedDate = DateTime.UtcNow,
-                    user.role //ovo sam dodala
+                    user.role
                 })
                 .Return(u => u.As<User>())
                 .ResultsAsync;
@@ -391,9 +437,14 @@ public class UserService
             .ResultsAsync;
 
         if (shows.Any())
+        {
             Console.WriteLine($"Successfully found {shows.Count()} shows to watch of user {username}");
+        }
         else
+        {
             Console.WriteLine($"User {username} exists but has no shows to watch.");
+            return [];
+        }
 
         return shows.ToList();
     }
@@ -422,9 +473,14 @@ public class UserService
             .ResultsAsync;
 
         if (shows.Any())
+        {
             Console.WriteLine($"Successfully found {shows.Count()} shows watched of user {username}");
+        }
         else
+        {
             Console.WriteLine($"User {username} exists but has no shows watched.");
+            return [];
+        }
 
         return shows.ToList();
     }
@@ -453,9 +509,14 @@ public class UserService
             .ResultsAsync;
 
         if (shows.Any())
+        {
             Console.WriteLine($"Successfully found {shows.Count()} shows watching of user {username}");
+        }
         else
+        {
             Console.WriteLine($"User {username} exists but has no shows watching.");
+            return [];
+        }
 
         return shows.ToList();
     }

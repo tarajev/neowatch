@@ -24,6 +24,13 @@ public class ShowController : ControllerBase
         return Ok(show);
     }
 
+    [HttpGet("GetShowCount")]
+    public async Task<IActionResult> GetUserCount()
+    {
+        var count = await _showService.GetShowCountAsync();
+        return Ok(count); 
+    }
+
     [HttpPost("CreateAShow")]
     public async Task<IActionResult> CreateAShow([FromBody] Show newShow)
     {

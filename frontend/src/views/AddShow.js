@@ -14,6 +14,7 @@ export default function DrawAddShow({ handleExitClick, handleShowCount }) {
   const [numberOfSeasons, setNumberOfSeasons] = useState(1);
 
   const [yearTouched, setYearTouched] = useState(false);
+  const [seasonsTouched, setSeasonsTouched] = useState(false);
 
   const handleNumberOfSeasonsChange = (e) => {
     const regex = /^\d*$/; // Samo brojevi
@@ -50,19 +51,19 @@ export default function DrawAddShow({ handleExitClick, handleShowCount }) {
           <div>
             <div>
               <div className='mb-4 w-full flex justify-center border-b border-violet-900'>
-                <p className='mb-2 text-xl text-gray-400'>Dodavanje nove serije</p>
+                <p className='mb-2 text-xl text-gray-400'>Add a show</p>
               </div>
 
               <div className='mb-4'>
                 <FormInput
-                  text="Naslov serije:"
+                  text="Title:"
                   required
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                 />
                 <div className='grid grid-cols-2 gap-4'>
                   <FormInput
-                    text="Godina izdavanja"
+                    text="Release year"
                     required
                     value={year}
                     onBlur={() => setYearTouched(true)}
@@ -70,27 +71,29 @@ export default function DrawAddShow({ handleExitClick, handleShowCount }) {
                     alertCond={yearTouched && year.length != 4}
                   />
                   <FormInput
-                    text="Broj sezona"
+                    text="Number of seasons"
                     required
                     value={numberOfSeasons}
+                    onBlur={() => setSeasonsTouched(true)}
                     onChange={handleNumberOfSeasonsChange}
+                    alertCond={seasonsTouched && !numberOfSeasons}
                   />
                 </div>
                 <FormInput 
-                  text="Opis"
+                  text="Description"
                   required
                   multiline
                   value={desc}
                   onChange={(e) => setDesc(e.target.value)}
                   className={"h-44"}
                 />
-                <FormButton disabled={!title || !desc || (yearTouched && year.length != 4) || !numberOfSeasons} text={"Dodaj seriju"} />
+                <FormButton disabled={!title || !desc || (yearTouched && year.length != 4) || !numberOfSeasons} text={"Add show"} />
               </div>
             </div>
 
             <span className="block text-sm text-gray-700">
               <span className="text-sm text-red-600">*</span>
-              Ova polja su obavezna.
+              These fields are required.
             </span>
           </div>
         </div>

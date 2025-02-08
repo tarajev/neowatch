@@ -13,12 +13,6 @@ import iconGear from "../resources/img/icon-gear.png"
 import iconSearch from "../resources/img/icon-search.png"
 import iconUser from '../resources/img/icon-user.png'
 
-import breakingBadImage from "../images/breakingbad.jpg";
-import strangerThingsImage from "../images/strangerthings.jpg";
-import theCrownImage from "../images/thecrown.jpg";
-import theWitcherImage from "../images/thewitcher.jpg";
-import friendsImage from "../images/friends.jpg";
-
 export default function DrawProfile() {
   const { username } = useParams();
   const { APIUrl, contextUser } = useContext(AuthorizationContext);
@@ -26,39 +20,29 @@ export default function DrawProfile() {
   const [userInfo, setUserInfo] = useState(null);
   const [userStats, setUserStats] = useState(null);
   const [userIsFollowed, setUserIsFollowed] = useState(false);
+  const [showsWatching, setShowsWatching] = useState([]);
+  const [showsWatched, setShowsWatched] = useState([]);
+  const [showsToWatch, setShowsToWatch] = useState([]);
 
   const [showShowStats, setShowShowStats] = useState(false);
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showSearchUsers, setShowSearchUsers] = useState(false);
+  const [showSelected, setShowSelected] = useState(null);
 
   const [overlayActive, setOverlayActive] = useState(false); // Potrebno za prevenciju background-tabovanja kada je forma aktivna
   const navigate = useNavigate();
 
-  const shows = [ //privremeno naravno
-    { id: 1, title: "Breaking Bad", image: breakingBadImage, numberOfSeasons: 5, rating: 9.5, cast: [{ actor: { name: "Bryan Cranston" } }, { actor: { name: "Aaron Paul" } }, { actor: { name: "Anna Gunn" } }], genres: ["Crime", "Drama", "Thriller"], desc: "A high school chemistry teacher turned methamphetamine producer partners with a former student to build a drug empire.", year: 2008 },
-    { id: 2, title: "Stranger Things", image: strangerThingsImage, numberOfSeasons: 4, rating: 8.7, cast: [{ actor: { name: "Winona Ryder" } }, { actor: { name: "David Harbour" } }, { actor: { name: "Finn Wolfhard" } }], genres: ["Drama", "Fantasy", "Horror"], desc: "A group of kids in a small town uncover supernatural events while searching for their missing friend.", year: 2016 },
-    { id: 3, title: "The Crown", image: theCrownImage, numberOfSeasons: 6, rating: 8.6, cast: [{ actor: { name: "Claire Foy" } }, { actor: { name: "Olivia Colman" } }, { actor: { name: "Matt Smith" } }], genres: ["Biography", "Drama", "History"], desc: "The story of Queen Elizabeth II's reign, from her early years on the throne to present day.", year: 2016 },
-    { id: 4, title: "The Witcher", image: theWitcherImage, numberOfSeasons: 3, rating: 8.1, cast: [{ actor: { name: "Henry Cavill" } }, { actor: { name: "Anya Chalotra" } }, { actor: { name: "Freya Allan" } }], genres: ["Action", "Adventure", "Drama"], desc: "A mutated monster hunter, Geralt of Rivia, struggles to find his place in a world where people often prove more wicked than beasts.", year: 2019 },
-    { id: 5, title: "Friends", image: friendsImage, numberOfSeasons: 10, rating: 8.8, cast: [{ actor: { name: "Jennifer Aniston" } }, { actor: { name: "Courteney Cox" } }, { actor: { name: "Lisa Kudrow" } }], genres: ["Comedy", "Romance"], desc: "Six friends navigate life and love in New York City, sharing laughter, heartbreak, and a lot of coffee.", year: 1994 }
-  ];
-
   useEffect(() => {
+    checkIfUserIsFollowing();
     getUserInfo(username);
     getUserStats(username);
-    checkIfUserIsFollowing();
+    getUserShows(username);
   }, [username]);
 
-  useEffect(() => {
-    console.log("Updated userStats:", userStats);
-  }, [userStats]);
-
-  useEffect(() => {
-    console.log("Updated userInfo:", userInfo);
-  }, [userInfo]);
-
-  useEffect(() => {
-    console.log(`http://localhost:5227${userInfo?.picture}`);
-  }, [userInfo?.picture])
+  const displayShowInfo = (show) => {
+    setShowSelected(show);
+    setShowShowStats(true);
+  }
 
   const getUserInfo = async (username) => {
     var route = `User/GetUserByUsername/${username}`;
@@ -95,6 +79,66 @@ export default function DrawProfile() {
       .catch(error => {
         console.log(error);
       })
+  }
+
+  const getUserShows = async (username) => {
+    var routeWatching = `User/GetShowsWatching/${username}`;
+    var routeWatched = `User/GetShowsWatched/${username}`;
+    var routePlansToWatch = `User/GetShowsToWatch/${username}`;
+
+    axios.get(APIUrl + routeWatching, {
+      headers: {
+        Authorization: `Bearer ${contextUser.jwtToken}`,
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => {
+        setShowsWatching(response.data);
+      })
+      .catch((error) => {
+        if (error.response?.status === 404) {
+          console.warn("No watching shows found.");
+          setShowsWatching([]);
+        } else {
+          console.error("Error fetching watching shows:", error);
+        }
+      });
+
+    axios.get(APIUrl + routeWatched, {
+      headers: {
+        Authorization: `Bearer ${contextUser.jwtToken}`,
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => {
+        setShowsWatched(response.data);
+      })
+      .catch((error) => {
+        if (error.response?.status === 404) {
+          console.warn("No watched shows found.");
+          setShowsWatched([]);
+        } else {
+          console.error("Error fetching watched shows:", error);
+        }
+      });
+
+    axios.get(APIUrl + routePlansToWatch, {
+      headers: {
+        Authorization: `Bearer ${contextUser.jwtToken}`,
+        "Content-Type": "application/json",
+      },
+    })
+      .then((response) => {
+        setShowsToWatch(response.data);
+      })
+      .catch((error) => {
+        if (error.response?.status === 404) {
+          console.warn("No planned-to-watch shows found.");
+          setShowsToWatch([]);
+        } else {
+          console.error("Error fetching planned-to-watch shows:", error);
+        }
+      });
   }
 
   const followUser = async () => {
@@ -150,7 +194,7 @@ export default function DrawProfile() {
 
   return (
     <Page loading={true} timeout={1000} overlayActive={overlayActive} overlayHandler={setOverlayActive}>
-      {showShowStats && <ShowInfo show={shows[1]} handleExitClick={() => setShowShowStats(false)} />}
+      {showShowStats && <ShowInfo show={showSelected} handleExitClick={() => setShowShowStats(false)} />}
       {showEditProfile && <DrawEditProfile handleExitClick={() => setShowEditProfile(false)} user={userInfo} />}
       {showSearchUsers && <DrawSearchUsers handleExitClick={() => setShowSearchUsers(false)} />}
 
@@ -228,23 +272,26 @@ export default function DrawProfile() {
       <div className='pt-5'>
         <CollapsiblePanel title="Currently Watching:" open={true}>
           <div className='grid grid-cols-6 gap-4 p-2'>
-            <SeriesSlot title='Breaking Bad' image={breakingBadImage} func={() => setShowShowStats(true)} />
-            <SeriesSlot title='Breaking Bad' image={breakingBadImage} func={() => setShowShowStats(true)} />
-            <SeriesSlot title='Breaking Bad' image={breakingBadImage} func={() => setShowShowStats(true)} />
-            <SeriesSlot title='Breaking Bad' image={breakingBadImage} func={() => setShowShowStats(true)} />
-            <SeriesSlot title='Breaking Bad' image={breakingBadImage} func={() => setShowShowStats(true)} />
-            <SeriesSlot title='Breaking Bad' image={breakingBadImage} func={() => setShowShowStats(true)} />
+            {showsWatching.length == 0 && <p className='col-span-2'>This user has no shows currently watching.</p>}
+            {showsWatching.map((show, index) => (
+              <SeriesSlot key={`watching-${index}`} title={show.title} image={show.imageurl} func={() => displayShowInfo(show)} />
+            ))}
           </div>
         </CollapsiblePanel>
         <CollapsiblePanel title="Watched Shows:">
           <div className='grid grid-cols-6 gap-4 p-2'>
-            <SeriesSlot title='Breaking Bad' image={breakingBadImage} />
+            {showsWatched.length == 0 && <p className='col-span-2'>This user has no shows watched.</p>}
+            {showsWatched.map((show, index) => (
+              <SeriesSlot key={`watched-${index}`} title={show.title} image={show.imageurl} func={() => displayShowInfo(show)} />
+            ))}
           </div>
         </CollapsiblePanel>
         <CollapsiblePanel title="Plans to Watch:">
           <div className='grid grid-cols-6 gap-4 p-2'>
-            <SeriesSlot title='Breaking Bad' image={breakingBadImage} />
-            <SeriesSlot title='Breaking Bad' image={breakingBadImage} />
+            {showsToWatch.length == 0 && <p className='col-span-3'>This user has no planned shows to watch.</p>}
+            {showsToWatch.map((show, index) => (
+              <SeriesSlot key={`planstowatch-${index}`} title={show.title} image={show.imageurl} func={() => displayShowInfo(show)} />
+            ))}
           </div>
         </CollapsiblePanel>
       </div>

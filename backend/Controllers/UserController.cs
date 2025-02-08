@@ -29,11 +29,14 @@ public class UserController : ControllerBase
     public async Task<IActionResult> GetUserByUsername(string username)
     {
         var user = await _userService.GetUserAsync(username);
-
-        if (user == null)
-            return NotFound("No user with given username found.");
-            
         return Ok(user);
+    }
+
+    [HttpGet("GetUserCounts")]
+    public async Task<IActionResult> GetUserCount()
+    {
+        var count = await _userService.GetUserCountsAsync();
+        return Ok(count); 
     }
 
     [AllowAnonymous]
@@ -41,10 +44,13 @@ public class UserController : ControllerBase
     public async Task<IActionResult> FindUsers(string search)
     {
         List<User>? users = await _userService.SearchForUsersAsync(search);
+        return Ok(users);
+    }
 
-        if (users == null || users?.Count == 0)
-            return NotFound("No users with given search term found.");
-            
+    [HttpGet("FindUsersByEmail/{search}")]
+    public async Task<IActionResult> FindUsersByEmail(string search)
+    {
+        List<User>? users = await _userService.SearchForUsersByEmailAsync(search);
         return Ok(users);
     }
 
@@ -148,7 +154,7 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("IsUserFollowing/{username}/{userToCheck}")]
-    
+
     public async Task<IActionResult> IsUserFollowing(string username, string userToCheck)
     {
         bool? follows = await _userService.IsUserFollowingAsync(username, userToCheck);
@@ -177,37 +183,55 @@ public class UserController : ControllerBase
 
     #region Shows
 
-    [HttpGet("GetShowsToWatch")]
+    [AllowAnonymous]
+    [HttpGet("GetShowsToWatch/{username}")]
     public async Task<IActionResult> GetShowsToWatch(string username)
     {
         var shows = await _userService.GetShowsToWatchAsync(username);
 
         if (shows != null)
-            return Ok(shows);
+        {
+            if (shows.Count > 0) return Ok(shows);
+            else return NotFound("Korisnik nema serija koje planira da gleda.");
+        }
         else
+        {
             return BadRequest("Korisnik sa zadatim korisničkim imenom ne postoji.");
+        }
     }
 
-    [HttpGet("GetShowsWatched")]
+    [AllowAnonymous]
+    [HttpGet("GetShowsWatched/{username}")]
     public async Task<IActionResult> GetShowsWatched(string username)
     {
         var shows = await _userService.GetShowsWatchedAsync(username);
 
         if (shows != null)
-            return Ok(shows);
+        {
+            if (shows.Count > 0) return Ok(shows);
+            else return NotFound("Korisnik nema serija koje je gledao.");
+        }
         else
+        {
             return BadRequest("Korisnik sa zadatim korisničkim imenom ne postoji.");
+        }
     }
 
-    [HttpGet("GetShowsWatching")]
+    [AllowAnonymous]
+    [HttpGet("GetShowsWatching/{username}")]
     public async Task<IActionResult> GetShowsWatching(string username)
     {
         var shows = await _userService.GetShowsWatchingAsync(username);
 
         if (shows != null)
-            return Ok(shows);
+        {
+            if (shows.Count > 0) return Ok(shows);
+            else return NotFound("Korisnik nema serija koje gleda.");
+        }
         else
+        {
             return BadRequest("Korisnik sa zadatim korisničkim imenom ne postoji.");
+        }
     }
 
     [HttpPut("AddShowToWatch")]
@@ -261,7 +285,7 @@ public class UserController : ControllerBase
     [HttpPut("AddReview")]
     public async Task<IActionResult> AddReview([FromBody] ReviewInfo data)
     {
-        var review = await _userService.AddReviewAsync(data.Username, data.Title, data.Rating, data.Comment); //provere za ovo dodaj
+        var review = await _userService.AddReviewAsync(data.Username, data.Title, data.Rating, data.Comment ?? "");
 
         if (review)
             return Ok($"Uspešno dodata recenzija.");

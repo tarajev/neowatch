@@ -37,7 +37,6 @@ export default function DrawSearchUsers({ handleExitClick }) {
       }
     })
       .then(response => {
-        console.log("Users found:", response.data);
         setUsers(response.data);
       })
       .catch(error => {
@@ -109,7 +108,7 @@ function UserSlot({ user, func }) {
       onClick={() => func(user.username)}
     >
       <div className='flex items-center border border-violet-900 hover:shadow-md hover:shadow-violet-500/50 hover:bg-violet-900 transition-all rounded-xl'>
-        <img src={user.picture != null ? `http://localhost:5227${user.picture}` : iconUser} className='w-10 h-10 p-1 border border-white rounded-full filter-white' />
+        <img src={user.picture != null ? `http://localhost:5227${user.picture}` : iconUser} className={`w-10 h-10 p-1 border border-white rounded-full ${user.picture == null && "filter-white"}`} />
         <p className='justify-self-center p-1 text-center'>{user.username}</p>
       </div>
     </a>
