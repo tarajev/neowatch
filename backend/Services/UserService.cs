@@ -736,10 +736,10 @@ public class UserService
             // Vraćanje podataka o broju serija i korisnika koji prate
             .Return((w, q, p, f) => new
             {
-                WatchedCount = w.Count(),
-                WatchingCount = q.Count(),
-                PlanToWatchCount = p.Count(),
-                FollowersCount = f.Count()
+                WatchedCount = w.CountDistinct(),
+                WatchingCount = q.CountDistinct(),
+                PlanToWatchCount = p.CountDistinct(),
+                FollowersCount = f.CountDistinct()
             });
 
         var result = await query.ResultsAsync;

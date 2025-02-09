@@ -14,7 +14,7 @@ import iconSearch from "../resources/img/icon-search.png"
 import iconUser from '../resources/img/icon-user.png'
 
 export default function DrawProfile() {
-  const { username } = useParams();
+  const { username, tab } = useParams();
   const { APIUrl, contextUser } = useContext(AuthorizationContext);
 
   const [userInfo, setUserInfo] = useState(null);
@@ -29,6 +29,8 @@ export default function DrawProfile() {
   const [showSearchUsers, setShowSearchUsers] = useState(false);
   const [showSelected, setShowSelected] = useState(null);
 
+  const [openList, setOpenList] = useState(tab);
+
   const [overlayActive, setOverlayActive] = useState(false); // Potrebno za prevenciju background-tabovanja kada je forma aktivna
   const navigate = useNavigate();
 
@@ -40,8 +42,25 @@ export default function DrawProfile() {
   }, [username]);
 
   const displayShowInfo = (show) => {
-    setShowSelected(show);
-    setShowShowStats(true);
+    console.log("serija" + show);
+    getAdditionalShowInfo(show);
+  }
+
+  const getAdditionalShowInfo = async (show) => {
+    var route = `Show/GetTvShowGenresAndActors/${show.title}`;
+    await axios.get(APIUrl + route)
+      .then(result => {
+        const updatedShow = {
+          ...show,
+          cast: result.data.cast,
+          genres: result.data.genres
+        };
+        setShowSelected(updatedShow);
+        setShowShowStats(true);
+      })
+      .catch(error => {
+        console.log(error);
+      })
   }
 
   const getUserInfo = async (username) => {
@@ -82,15 +101,16 @@ export default function DrawProfile() {
   }
 
   const getUserShows = async (username) => {
-    var routeWatching = `User/GetShowsWatching/${username}`;
-    var routeWatched = `User/GetShowsWatched/${username}`;
-    var routePlansToWatch = `User/GetShowsToWatch/${username}`;
+    var routeWatching = `User/GetShowsWatching`;
+    var routeWatched = `User/GetShowsWatched`;
+    var routePlansToWatch = `User/GetShowsToWatch`;
 
-    axios.get(APIUrl + routeWatching, {
+    await axios.get(APIUrl + routeWatching, {
       headers: {
         Authorization: `Bearer ${contextUser.jwtToken}`,
         "Content-Type": "application/json",
       },
+      params: { username }
     })
       .then((response) => {
         setShowsWatching(response.data);
@@ -104,11 +124,12 @@ export default function DrawProfile() {
         }
       });
 
-    axios.get(APIUrl + routeWatched, {
+    await axios.get(APIUrl + routeWatched, {
       headers: {
         Authorization: `Bearer ${contextUser.jwtToken}`,
         "Content-Type": "application/json",
       },
+      params: { username }
     })
       .then((response) => {
         setShowsWatched(response.data);
@@ -122,11 +143,12 @@ export default function DrawProfile() {
         }
       });
 
-    axios.get(APIUrl + routePlansToWatch, {
+    await axios.get(APIUrl + routePlansToWatch, {
       headers: {
         Authorization: `Bearer ${contextUser.jwtToken}`,
         "Content-Type": "application/json",
       },
+      params: { username }
     })
       .then((response) => {
         setShowsToWatch(response.data);
@@ -139,6 +161,8 @@ export default function DrawProfile() {
           console.error("Error fetching planned-to-watch shows:", error);
         }
       });
+
+
   }
 
   const followUser = async () => {
@@ -270,15 +294,16 @@ export default function DrawProfile() {
 
       {/* BOTTOM SECTION */}
       <div className='pt-5'>
-        <CollapsiblePanel title="Currently Watching:" open={true}>
+        <CollapsiblePanel title="Currently Watching:" open={openList==="watching" ? true : false}>
           <div className='grid grid-cols-6 gap-4 p-2'>
             {showsWatching.length == 0 && <p className='col-span-2'>This user has no shows currently watching.</p>}
+            {console.log("broj serija:" + showsWatching.length)}
             {showsWatching.map((show, index) => (
               <SeriesSlot key={`watching-${index}`} title={show.title} image={show.imageurl} func={() => displayShowInfo(show)} />
             ))}
           </div>
         </CollapsiblePanel>
-        <CollapsiblePanel title="Watched Shows:">
+        <CollapsiblePanel title="Watched Shows:" open={openList==="watched" ? true : false}>
           <div className='grid grid-cols-6 gap-4 p-2'>
             {showsWatched.length == 0 && <p className='col-span-2'>This user has no shows watched.</p>}
             {showsWatched.map((show, index) => (
@@ -286,7 +311,7 @@ export default function DrawProfile() {
             ))}
           </div>
         </CollapsiblePanel>
-        <CollapsiblePanel title="Plans to Watch:">
+        <CollapsiblePanel title="Plans to Watch:" open={openList==="towatch" ? true : false}> 
           <div className='grid grid-cols-6 gap-4 p-2'>
             {showsToWatch.length == 0 && <p className='col-span-3'>This user has no planned shows to watch.</p>}
             {showsToWatch.map((show, index) => (

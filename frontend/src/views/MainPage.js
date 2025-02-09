@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react'
 import axios from 'axios';
 import AuthorizationContext from '../context/AuthorizationContext'
-import { Page } from '../components/BasicComponents'
+import { Page, Link } from '../components/BasicComponents'
 import Tabs from "../components/Tabs";
 import '../assets/colors.css'
 import '../assets/animations.css'
@@ -33,6 +33,7 @@ export default function DrawMainPage() {
     })
       .then(result => {
         setUserStats(result.data)
+        localStorage.setItem("userStats", JSON.stringify(result.data));
       })
       .catch(error => {
         console.log(error);
@@ -76,15 +77,15 @@ export default function DrawMainPage() {
                 </div>
                 {/* Linkovi */}
                 <nav className="mt-4 space-y-2 text-center">
-                  <a href="/currently-watching" className="block text-white text-sm hover:underline">
+                  <Link disabled={contextUser.role == "Guest" ? true : false} route={`/profile/${contextUser.username}/watching`} className="block text-white text-sm hover:underline">
                     - Currently Watching -
-                  </a>
-                  <a href="/watched" className="block text-white text-sm hover:underline">
+                  </Link>
+                  <Link disabled={contextUser.role == "Guest" ? true : false} route={`/profile/${contextUser.username}/watched`} className="block text-white text-sm hover:underline">
                     - Watched -
-                  </a>
-                  <a href="/to-watch" className="block text-white text-sm hover:underline">
+                  </Link>
+                  <Link disabled={contextUser.role == "Guest" ? true : false} route={`/profile/${contextUser.username}/towatch`} className="block text-white text-sm hover:underline">
                     - Want To Watch -
-                  </a>
+                  </Link>
                 </nav>
               </div>
             </div>

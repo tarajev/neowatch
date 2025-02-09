@@ -32,7 +32,7 @@ export default function Header({ overlayActive, overlayHandler }) {
   };
 
   const openProfile = (username) => {
-    navigate(`../profile/${username}`);
+    navigate(`../profile/${username}/watching`);
     window.location.reload();
   }
   
@@ -83,7 +83,7 @@ export default function Header({ overlayActive, overlayHandler }) {
                 <Link className='mx-1 ml-2' onClick={() => openProfile(contextUser.username)} preventTab={overlayActive}>
                   <div className="flex flex-wrap items-center">
                     <img src={contextUser.picture != null ? `http://localhost:5227${contextUser.picture}` : iconUser} className={`${contextUser.picture == null && "filter-white"} border border-indigo rounded-full w-7 h-7 mr-2`} />
-                    <div className="text-nowrap truncate max-w-160">
+                    <div className="text-nowrap truncate text-white max-w-160">
                       {contextUser.username}
                     </div>
                   </div>
@@ -94,7 +94,7 @@ export default function Header({ overlayActive, overlayHandler }) {
 
             {contextUser.role != "Guest" ? (
               <>
-                <Link className='mx-2' preventTab={overlayActive} onClick={handleLogout}>
+                <Link className='mx-2 text-white' preventTab={overlayActive} onClick={handleLogout}>
                   Log out
                 </Link>
               </>) : null}

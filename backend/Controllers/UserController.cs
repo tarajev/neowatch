@@ -310,13 +310,13 @@ public class UserController : ControllerBase
     [HttpGet("GetUserStats/{username}")]
     public async Task<IActionResult> GetUserStats(string username)
     {
-        var data = await _userService.GetUserStatsAsync(username);
+        var (WatchedCount, WatchingCount, PlanToWatchCount, FollowersCount) = await _userService.GetUserStatsAsync(username);
         return Ok(new
         {
-            data.WatchedCount,
-            data.WatchingCount,
-            data.PlanToWatchCount,
-            data.FollowersCount
+            WatchedCount,
+            WatchingCount,
+            PlanToWatchCount,
+            FollowersCount
         });
     }
 }

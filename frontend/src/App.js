@@ -36,7 +36,7 @@ function App() {
           <Routes>
             <Route path="/" element={<MainPage />} />
             <Route path="/landingpage" element={<LandingPage />} />
-            <Route path="/profile/:username" element={<Profile />} />
+            <Route path="/profile/:username/:tab" element={<Profile />} />
             <Route path="/moderatorpage" element={<ModeratorPage />} />
             <Route path="NotFound" element={<DrawNotFound />} />
           </Routes>
