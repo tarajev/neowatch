@@ -17,8 +17,8 @@ import DrawLoadingScreen from '../views/LoadingScreen';
 import AuthorizationContext from '../context/AuthorizationContext';
 
 export function Page({ overlayActive, overlayHandler, children, loading = false, timeout = 500 }) {
-  const [pageLoading, setPageLoading] = useState(loading);
   const { contextUser, contextSetUser } = useContext(AuthorizationContext);
+  const [pageLoading, setPageLoading] = useState(loading);
   const location = useLocation();
   const prevLocation = useRef('');
 
@@ -49,8 +49,6 @@ export function Page({ overlayActive, overlayHandler, children, loading = false,
       return () => clearTimeout(delayedLoading);
     }, timeout);
   }, [])
-
-  // TODO - Da se uradi za check context usera da li je ulogovan vec bio ili ne?
 
   return (
     <>

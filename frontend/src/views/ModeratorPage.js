@@ -34,7 +34,7 @@ export default function DrawAdministrativePanel() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Paginacija bi trebalo bolje da se uradi u backend-u, da uzima samo one koje je potrebno????
-  
+
   // Pagination
   const itemsPerPage = 20;
   const startIndex = (page - 1) * itemsPerPage;
@@ -47,11 +47,10 @@ export default function DrawAdministrativePanel() {
   }, [])
 
   useEffect(() => {
-    console.log(items);
-  }, [items])
+    console.log(selectedUser);
+  }, [selectedUser])
 
   useEffect(() => {
-    setItems([]);
     setChanges(false);
   }, [selectedCard, changes])
 
@@ -59,9 +58,9 @@ export default function DrawAdministrativePanel() {
     if (debouncedSearch.length < 3) return;
 
     setIsLoading(true);
-    var route = 
-      selectedCard == "User" ? 
-        (selectedButton ? `User/FindUsersByEmail/${debouncedSearch}` : `User/FindUsers/${debouncedSearch}`) 
+    var route =
+      selectedCard == "User" ?
+        (selectedButton ? `User/FindUsersByEmail/${debouncedSearch}` : `User/FindUsers/${debouncedSearch}`)
         : `Show/SearchShowByTitle/${debouncedSearch}`
 
     axios.get(APIUrl + route, {
@@ -156,7 +155,7 @@ export default function DrawAdministrativePanel() {
     <Page loading={true} overlayActive={overlayActive} overlayHandler={setOverlayActive}>
       {showChangeProfile && <DrawEditModerator handleExitClick={handleExitProfileEdit} user={selectedUser} />}
       {showAddAccOrShow && (selectedCard !== "Show" ?
-        <DrawAddProfile handleExitClick={handleExitAccOrShowClick} handleUserCount={handleItemCount} /> :
+        <DrawAddProfile handleExitClick={handleExitAccOrShowClick} /> :
         <DrawAddShow handleExitClick={handleExitAccOrShowClick} handleShowCount={handleItemCount} />)}
       <h3 className="text-3xl font-medium text-white">
         Moderator Panel
@@ -256,9 +255,13 @@ function TableBody({ items, selectedCard, changeProfileClick, preventTab }) {
             <td className="px-6 py-4 border-b border-gray-900 whitespace-nowrap">
               <div className="flex items-center">
                 <div className="flex-shrink-0 w-10 h-10">
-                  <img className={`${selectedCard != "Show" ? "w-10 h-10" : "w-15 h-30"} rounded-full`} src={(selectedCard !== "Show" ? item.picture ?? iconNone : item.imageUrl)} />
+                  <img className={`${selectedCard != "Show" ? "w-10 h-10" : "w-15 h-30"} rounded-full`} src={(selectedCard !== "Show" ? (item.picture != null ? `http://localhost:5227${item.picture}` : iconNone) : item.imageUrl)} />
                 </div>
-                <div className="ml-4 text-sm font-medium leading-5">{(selectedCard !== "Show" ? item.username : item.title)}</div>
+                <div className="ml-4 text-sm font-medium leading-5">
+                  {(selectedCard !== "Show" ? 
+                    <Link route={"/profile/"} param={`${item.username}/watching`}>{item.username}</Link> 
+                    : item.title)}
+                </div>
               </div>
             </td>
 

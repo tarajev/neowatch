@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
-import { Link, Exit, Input } from '../components/BasicComponents.js';
+import { Exit, Input } from '../components/BasicComponents.js';
 import AuthorizationContext from "../context/AuthorizationContext.js";
 import axios from "axios";
 
@@ -20,7 +20,7 @@ export default function DrawSearchUsers({ handleExitClick }) {
   const navigate = useNavigate();
 
   const openProfile = (username) => {
-    navigate(`../profile/${username}`);
+    navigate(`../profile/${username}/watching`);
     window.location.reload();
   }
 

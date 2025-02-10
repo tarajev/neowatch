@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Neo4j.Driver;
 using Neo4jClient;
 using Neo4jClient.Cypher;
@@ -161,13 +160,10 @@ public class ShowService
         Console.WriteLine($"NASLOV SERIJE JE:::::::: {result.First().title}");
 
         return result.First();
-
     }
-
 
     public async Task<List<Show>> GetAllShows()
     { //vraća prvih 30
-
         using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
         await client.ConnectAsync();
 

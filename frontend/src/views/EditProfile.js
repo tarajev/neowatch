@@ -73,7 +73,7 @@ export default function DrawEditProfile({ handleExitClick, user }) {
 
   const exitForm = () => {
     setBio(user.bio)
-    setChangedPicture(null)
+    setChangedPicture("")
     setInfoEdited(false)
     handleExitClick();
   }
@@ -117,7 +117,7 @@ export default function DrawEditProfile({ handleExitClick, user }) {
             <div className="p-2 border border-white w-fit rounded-xl mt-5 justify-self-center">
               <img
                 src={changedPicture == "" ? (picture == null ? iconUser : `http://localhost:5227${picture}`) : URL.createObjectURL(changedPicture)}
-                className={`${picture == null ? "filter-white" : ""} w-44`}
+                className={`${(picture == null && changedPicture == "") ? "filter-white" : ""} w-44`}
               />
             </div>
             <div className="justify-items-center mt-2">

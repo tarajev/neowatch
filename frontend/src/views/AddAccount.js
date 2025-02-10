@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect, useContext } from 'react'
 import { FormButton, FormInput, Password } from '../components/BasicComponents'
 import AuthorizationContext from '../context/AuthorizationContext';
+import { useDebounce } from 'use-debounce';
 import axios from 'axios';
 
-export default function DrawAddProfile({ handleExitClick, handleUserCount }) {
+export default function DrawAddProfile({ handleExitClick }) {
   const formRef = useRef(null); // Za click van forme
-  const { contextUser, APIUrl } = useContext(AuthorizationContext);
+  const { APIUrl } = useContext(AuthorizationContext);
 
   // Osnovne informacije
   const [username, setUsername] = useState('');
@@ -14,6 +15,17 @@ export default function DrawAddProfile({ handleExitClick, handleUserCount }) {
 
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [emailTouched, setEmailTouched] = useState(false);
+  const [invalidEmail, setInvalidEmail] = useState(false);
+  const [invalidUsername, setInvalidUsername] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [exitForm, setExitForm] = useState(false);
+  const [exitFormConfirm] = useDebounce(exitForm, 1000);
+
+  useEffect(() => {
+    if (exitFormConfirm)
+      window.location.reload();
+  }, [exitFormConfirm])
 
   const handleUsernameChange = (e) => {
     const value = e.target.value.replace(/[^a-zA-Z0-9_]/g, '');
@@ -36,9 +48,29 @@ export default function DrawAddProfile({ handleExitClick, handleUserCount }) {
       setIsEmailValid(validateEmail(e.target.value));
   };
 
-  const handlePasswordChange = (e) => {
-    setPassword(e.target.value);
-  };
+  const createModeratorAccount = async () => {
+    const emailResult = await axios.get(APIUrl + `Auth/CheckEmail/${email}`);
+    setInvalidEmail(emailResult.data === 0 ? false : true);
+
+    const usernameResult = await axios.get(APIUrl + `User/GetUserByUsername/${username}`);
+    setInvalidUsername(usernameResult.data ? true : false);
+
+    if (!emailResult.data && !usernameResult.data) {
+      setIsLoading(true);
+      await axios.post(APIUrl + "Auth/Register", {
+        userName: username,
+        email: email,
+        password: password,
+        role: "Moderator"
+      })
+        .then(() => {
+          setSuccess(true);
+          setExitForm(true);
+        })
+        .catch(err => console.log(err)); //ovde ako dodje do greške da se ispiše da se pokuša ponovo ili tako nesto
+      setIsLoading(false);
+    }
+  }
 
   useEffect(() => { // Za click van forme
     function handleClickOutside(event) {
@@ -68,6 +100,8 @@ export default function DrawAddProfile({ handleExitClick, handleUserCount }) {
                   required
                   value={username}
                   onChange={handleUsernameChange}
+                  alertText={"Username already exists!"}
+                  alertCond={invalidUsername}
                 />
                 <FormInput
                   text="E-Mail:"
@@ -75,16 +109,18 @@ export default function DrawAddProfile({ handleExitClick, handleUserCount }) {
                   value={email}
                   onBlur={handleEmailBlur}
                   onChange={handleEmailChange}
-                  alertCond={!isEmailValid && emailTouched}
+                  alertText={"Email is already in use!"}
+                  alertCond={!isEmailValid && emailTouched || invalidEmail}
                 />
                 <Password
                   text="Password:"
                   required
                   visibility
                   value={password}
-                  onChange={handlePasswordChange}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
-                <FormButton disabled={!username || (!isEmailValid && emailTouched) || !password} text={"Create Moderator"} />
+                <FormButton disabled={!username || (!isEmailValid && emailTouched) || !password} loading={isLoading} onClick={createModeratorAccount} text={"Create Moderator"} />
+                {success ? (<p className='justify-self-center text-green-400 text-sm mt-2'>Successfully added a moderator account</p>) : null}
               </div>
             </div>
 

@@ -101,16 +101,15 @@ export default function DrawProfile() {
   }
 
   const getUserShows = async (username) => {
-    var routeWatching = `User/GetShowsWatching`;
-    var routeWatched = `User/GetShowsWatched`;
-    var routePlansToWatch = `User/GetShowsToWatch`;
+    var routeWatching = `User/GetShowsWatching/${username}`;
+    var routeWatched = `User/GetShowsWatched/${username}`;
+    var routePlansToWatch = `User/GetShowsToWatch/${username}`;
 
     await axios.get(APIUrl + routeWatching, {
       headers: {
         Authorization: `Bearer ${contextUser.jwtToken}`,
         "Content-Type": "application/json",
-      },
-      params: { username }
+      }
     })
       .then((response) => {
         setShowsWatching(response.data);
@@ -128,8 +127,7 @@ export default function DrawProfile() {
       headers: {
         Authorization: `Bearer ${contextUser.jwtToken}`,
         "Content-Type": "application/json",
-      },
-      params: { username }
+      }
     })
       .then((response) => {
         setShowsWatched(response.data);
@@ -147,8 +145,7 @@ export default function DrawProfile() {
       headers: {
         Authorization: `Bearer ${contextUser.jwtToken}`,
         "Content-Type": "application/json",
-      },
-      params: { username }
+      }
     })
       .then((response) => {
         setShowsToWatch(response.data);
@@ -161,13 +158,11 @@ export default function DrawProfile() {
           console.error("Error fetching planned-to-watch shows:", error);
         }
       });
-
-
   }
 
   const followUser = async () => {
     var route = `User/FollowUser/${contextUser.username}/${username}`;
-    await axios.put(APIUrl + route, {}, {
+    await axios.put(APIUrl + route, {
       headers: {
         Authorization: `Bearer ${contextUser.jwtToken}`,
         "Content-Type": "application/json"
@@ -184,7 +179,7 @@ export default function DrawProfile() {
 
   const unfollowUser = async () => {
     var route = `User/UnfollowUser/${contextUser.username}/${username}`;
-    await axios.put(APIUrl + route, {}, {
+    await axios.put(APIUrl + route, {
       headers: {
         Authorization: `Bearer ${contextUser.jwtToken}`,
         "Content-Type": "application/json"
@@ -208,7 +203,6 @@ export default function DrawProfile() {
       }
     })
       .then(result => {
-        console.log("Is following:", result.data);
         setUserIsFollowed(result.data);
       })
       .catch(error => {
