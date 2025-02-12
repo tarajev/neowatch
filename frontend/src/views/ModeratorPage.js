@@ -11,12 +11,12 @@ import axios from 'axios';
 import AuthorizationContext from '../context/AuthorizationContext';
 import DrawEditModerator from './EditModerator';
 import DrawAddProfile from './AddAccount';
-import DrawAddShow from './AddShow';
+import DrawAddOrEditShow from './AddOrEditShow';
 
 export default function DrawAdministrativePanel() {
   const { contextUser, APIUrl } = useContext(AuthorizationContext);
   const [selectedCard, setSelectedCard] = useState("User");
-  const [userCounts, setUserCounts] = useState((0, 0));
+  const [userCounts, setUserCounts] = useState([0, 0]);
   const [showCount, setShowCount] = useState(0);
 
   const [items, setItems] = useState([]);
@@ -27,11 +27,10 @@ export default function DrawAdministrativePanel() {
 
   const [showChangeProfile, setShowChangeProfile] = useState(false);
   const [showAddAccOrShow, setShowAddAccOrShow] = useState(false);
-  const [showToEdit, setShowToEdit] = useState(false);
+  const [showToEdit, setShowToEdit] = useState(null);
   const [overlayActive, setOverlayActive] = useState(false); // Potrebno za prevenciju background-tabovanja kada je forma aktivna
   const [selectedUser, setSelectedUser] = useState(null);
   const [added, setAdded] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   // Paginacija bi trebalo bolje da se uradi u backend-u, da uzima samo one koje je potrebno????
 
@@ -57,7 +56,6 @@ export default function DrawAdministrativePanel() {
   useEffect(() => {
     if (debouncedSearch.length < 3) return;
 
-    setIsLoading(true);
     var route = selectedCard !== "Show" ?
         (selectedButton ? `User/FindUsersByEmail/${debouncedSearch}/${selectedCard}` : `User/FindUsers/${debouncedSearch}/${selectedCard}`)
         : `Show/SearchShowByTitle/${debouncedSearch}`
@@ -76,10 +74,6 @@ export default function DrawAdministrativePanel() {
         console.error("Error fetching users:", error);
         setItems([]);
       })
-      .finally(() => {
-        setIsLoading(false);
-      });
-
   }, [debouncedSearch]);
 
   const getUserCounts = async () => {
@@ -122,6 +116,9 @@ export default function DrawAdministrativePanel() {
   const handleExitAccOrShowClick = () => {
     setShowAddAccOrShow(false);
     setOverlayActive(true);
+    
+    setSelectedUser(null);
+    setShowToEdit(null);
   }
   
   const handleEditAccOrShowClick = (item) => {
@@ -131,6 +128,7 @@ export default function DrawAdministrativePanel() {
     }
     else { 
       setShowToEdit(item);
+      console.log(item);
       setShowAddAccOrShow(true);
     }
 
@@ -143,27 +141,15 @@ export default function DrawAdministrativePanel() {
     setOverlayActive(false);
   }
 
-  const handleItemCount = () => {
-    if (selectedCard === "Show") setShowCount(showCount + 1);
-    // TODO za User i Moderator
-    
-    setAdded(!added);
-  }
-
-  const setSelectedButtonUsername = () => {
-    setSelectedButton(false);
-  }
-
-  const setSelectedButtonEmail = () => {
-    setSelectedButton(true);
-  }
+  const setSelectedButtonUsername = () => setSelectedButton(false);
+  const setSelectedButtonEmail = () => setSelectedButton(true);
 
   return (
     <Page loading={true} overlayActive={overlayActive} overlayHandler={setOverlayActive}>
       {showChangeProfile && <DrawEditModerator handleExitClick={handleExitProfileEdit} user={selectedUser} />}
       {showAddAccOrShow && (selectedCard !== "Show" ?
         <DrawAddProfile handleExitClick={handleExitAccOrShowClick} /> :
-        <DrawAddShow handleExitClick={handleExitAccOrShowClick} handleShowCount={handleItemCount} show={showToEdit} />)}
+        <DrawAddOrEditShow handleExitClick={handleExitAccOrShowClick} handleShowCount={() => setShowCount(showCount + 1)} editShow={showToEdit} />)}
       <h3 className="text-3xl font-medium text-white">
         Moderator Panel
       </h3>

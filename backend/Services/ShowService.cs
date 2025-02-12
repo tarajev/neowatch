@@ -255,11 +255,6 @@ public class ShowService
             query = query.Set("s.year = $year").WithParam("year", show.year);
         }
 
-        if (!string.IsNullOrWhiteSpace(show.year))
-        {
-            query = query.Set("s.imageUrl = $imageUrl").WithParam("imageUrl", show.imageUrl);
-        }
-
         if (show.numberOfSeasons > 0)
             query = query.Set("s.numberOfSeasons = $numSeasons").WithParam("numSeasons", show.numberOfSeasons);
 

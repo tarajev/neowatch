@@ -1,24 +1,28 @@
 import React, { useState, useRef, useEffect, useContext } from 'react'
 import { FormButton, FormInput, FileUpload, Exit } from '../components/BasicComponents'
 import AuthorizationContext from '../context/AuthorizationContext';
+import { useDebounce } from 'use-debounce';
 import axios from 'axios';
 
 import iconShow from "../resources/img/icon-series.png"
 
-export default function DrawAddShow({ handleExitClick, handleShowCount, editShow }) {
+export default function DrawAddOrEditShow({ handleExitClick, handleShowCount, editShow }) {
   const formRef = useRef(null); // Za click van forme
   const { contextUser, APIUrl } = useContext(AuthorizationContext);
 
   // Osnovne informacije
-  const [title, setTitle] = useState('');
-  const [desc, setDesc] = useState('');
-  const [year, setYear] = useState('');
-  const [picture, setPicture] = useState(null);
-  const [numberOfSeasons, setNumberOfSeasons] = useState(1);
-  const [genres, setGenres] = useState(editShow ? [] : []);
-  const [cast, setCast] = useState([]);
+  const [title, setTitle] = useState(editShow ? editShow.title : '');
+  const [desc, setDesc] = useState(editShow ? editShow.desc : '');
+  const [year, setYear] = useState(editShow ? editShow.year : '');
+  const [picture, setPicture] = useState(editShow ? editShow.imageUrl : null);
+  const [numberOfSeasons, setNumberOfSeasons] = useState(editShow ? editShow.numberOfSeasons : 1);
+  const [genres, setGenres] = useState(editShow ? editShow.genres : []);
+  const [cast, setCast] = useState(editShow ? editShow.cast : []);
 
   const [currentActorWithoutRole, setCurrentActor] = useState("");
+  const [confirmDeletion, setConfirmDeletion] = useState(false);
+  const [changedPicture, setChangedPicture] = useState("");
+  const [oldTitle, setOldTitle] = useState(editShow ? editShow.title : '');
 
   const [inputGenre, setInputGenre] = useState('');
   const [inputCastOrRole, setInputCastOrRole] = useState('');
@@ -28,13 +32,20 @@ export default function DrawAddShow({ handleExitClick, handleShowCount, editShow
   const [genresTouched, setGenresTouched] = useState(false);
   const [castTouched, setCastTouched] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [exitForm, setExitForm] = useState(false);
+  const [exitFormConfirm] = useDebounce(exitForm, 1000);
 
   useEffect(() => {
-    if (title && desc && (yearTouched && year.length == 4) && numberOfSeasons > 0 && picture && genres.length != 0 && cast.length != 0)
+    if (title && desc && year.length == 4 && numberOfSeasons > 0 && (picture || changedPicture != "") && genres.length != 0 && cast.length != 0)
       setAddShowEnabled(true);
     else
       setAddShowEnabled(false);
-  }, [title, desc, year, picture, numberOfSeasons])
+  }, [title, desc, year, numberOfSeasons, picture, changedPicture, genres, cast])
+
+  useEffect(() => {
+    if (exitFormConfirm)
+      handleExitClick();
+  }, [exitFormConfirm])
 
   const handleNumberOfSeasonsChange = (e) => {
     const regex = /^\d*$/; // Samo brojevi
@@ -81,6 +92,8 @@ export default function DrawAddShow({ handleExitClick, handleShowCount, editShow
         setCurrentActor(inputCastOrRole);
       }
       else {
+        if (inputCastOrRole == "") return;
+
         const newActedIn = {
           actor: { name: currentActorWithoutRole },
           role: inputCastOrRole
@@ -96,9 +109,10 @@ export default function DrawAddShow({ handleExitClick, handleShowCount, editShow
 
   const addGenre = () => {
     const formattedGenre = inputGenre.charAt(0).toUpperCase() + inputGenre.slice(1).toLowerCase(); // Prvo slovo uppercase, ostala lowercase
+    const genreObject = { name: formattedGenre.trim() };
 
-    if (formattedGenre.trim() !== '' && !genres.includes(formattedGenre))
-      setGenres([...genres, formattedGenre.trim()]);
+    if (genreObject.name !== '' && !genres.some(g => g.name === genreObject.name))
+      setGenres([...genres, genreObject]);
   };
 
   const removeGenre = (indeks) => {
@@ -119,14 +133,12 @@ export default function DrawAddShow({ handleExitClick, handleShowCount, editShow
   const addShow = async () => {
     var route = "Show/CreateAShow";
 
-    const formattedGenres = genres.map((genre) => ({ name: genre })); // List<Genre> pa mora da se doda name
-
     const newShow = {
       title: title.trim(),
       desc: desc.trim(),
       year: year.toString(),
       numberOfSeasons: numberOfSeasons,
-      genres: formattedGenres,
+      genres: genres,
       cast: cast
     }
 
@@ -139,35 +151,104 @@ export default function DrawAddShow({ handleExitClick, handleShowCount, editShow
       }
     })
       .then(result => {
-        console.log(result.data)
+        handleShowCount();
+        setExitForm(true);
       })
       .catch(error => {
         console.log(error);
       })
 
-    if (typeof picture !== 'string' || (typeof picture === 'string')) {
-      if (picture != "") {
-        const formData = new FormData();
-        formData.append('file', picture);
-        route = `Show/UploadShowThumbnail/${title}`;
+    if (typeof changedPicture !== 'string' || (typeof changedPicture === 'string' && picture.trim() !== changedPicture.trim() && changedPicture != "")) {
+      const formData = new FormData();
+      formData.append('file', changedPicture);
+      route = `Show/UploadShowThumbnail/${title}`;
 
-        await axios.put(APIUrl + route, formData, {
-          headers: {
-            Authorization: `Bearer ${contextUser.jwtToken}`,
-            'Content-Type': 'multipart/form-data'
-          }
+      await axios.put(APIUrl + route, formData, {
+        headers: {
+          Authorization: `Bearer ${contextUser.jwtToken}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+        .then(result => {
+          console.log(result);
         })
-          .then(result => {
-            console.log(result.data)
-          })
-          .catch(error => {
-            console.log(error)
-          })
-      }
+        .catch(error => {
+          console.log(error)
+        })
     }
 
     setIsLoading(false);
-    // window.location.reload(); // Refresh stranice
+  }
+
+  const updateShow = async () => {
+    if (oldTitle == '') return;
+
+    var route = `Show/UpdateAShow/${oldTitle}`;
+    const updatedShow = {
+      title: title.trim(),
+      desc: desc.trim(),
+      year: year.toString(),
+      numberOfSeasons: numberOfSeasons,
+      genres: genres,
+      cast: cast
+    }
+
+    setIsLoading(true);
+    await axios.put(APIUrl + route, updatedShow, {
+      headers: {
+        Authorization: `Bearer ${contextUser.jwtToken}`,
+        "Content-Type": "application/json"
+      }
+    })
+      .then(() => {
+        setExitForm(true);
+      })
+      .catch(error => {
+        console.log(error);
+      })
+
+    if (typeof changedPicture !== 'string' || (typeof changedPicture === 'string' && picture.trim() !== changedPicture.trim() && changedPicture != "")) {
+      const formData = new FormData();
+      formData.append('file', changedPicture);
+      route = `Show/UploadShowThumbnail/${title}`;
+
+      await axios.put(APIUrl + route, formData, {
+        headers: {
+          Authorization: `Bearer ${contextUser.jwtToken}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+        .then(result => {
+          console.log(result.data)
+        })
+        .catch(error => {
+          console.log(error)
+        })
+    }
+
+    setIsLoading(false);
+  }
+
+  const deleteShow = async () => {
+    if (!editShow || !editShow.title) {
+      console.error("No show selected for deletion.");
+      return;
+    }
+
+    var route = `Show/DeleteAShow/${editShow.title}`;
+
+    await axios.delete(APIUrl + route, {
+      headers: {
+        Authorization: `Bearer ${contextUser.jwtToken}`
+      }
+    })
+      .then(result => {
+        console.log("Show deleted successfully:", result.data);
+        window.location.reload();
+      })
+      .catch(error => {
+        console.error("Error deleting the show:", error);
+      });
   }
 
   useEffect(() => { // Za click van forme
@@ -198,12 +279,12 @@ export default function DrawAddShow({ handleExitClick, handleShowCount, editShow
               </div>
               <div className="p-2 border border-white w-56 h-96 rounded-xl mt-5 justify-self-center flex items-center justify-center">
                 <img
-                  src={picture == null ? iconShow : URL.createObjectURL(picture)}
-                  className={`${picture == null ? "filter-white" : ""} w-26`}
+                  src={changedPicture == "" ? (picture == null ? iconShow : `http://localhost:5227${picture}`) : URL.createObjectURL(changedPicture)}
+                  className={`${picture == null && changedPicture == "" ? "filter-white" : ""} w-26`}
                 />
               </div>
               <div className="justify-items-center mt-2">
-                <FileUpload buttonText="Add photo" setPicture={setPicture} />
+                <FileUpload buttonText={`${editShow ? "Update" : "Add"} Photo`} setPicture={setChangedPicture} />
               </div>
             </div>
 
@@ -270,13 +351,23 @@ export default function DrawAddShow({ handleExitClick, handleShowCount, editShow
                 multiline
                 value={desc}
                 onChange={(e) => setDesc(e.target.value)}
-                className={"h-96"}
+                className={`${editShow ? "h-80" : "h-96"}`}
               />
-              <FormButton disabled={!addShowEnabled} loading={isLoading} className="justify-self-center" onClick={addShow} text={"Add show"} />
-              <span className="block text-sm text-gray-700 mt-2">
-                <span className="text-sm text-red-600">*</span>
-                These fields are required.
-              </span>
+
+              <FormButton disabled={!addShowEnabled} loading={isLoading} className="justify-self-center" onClick={editShow ? updateShow : addShow} text={`${editShow ? "Update" : "Add"} Show`} />
+              {editShow ? (
+                <FormButton className="justify-self-center !bg-red-900 hover:!bg-red-600" onClick={confirmDeletion ? () => deleteShow() : () => setConfirmDeletion(true)} text={`${confirmDeletion ? "Really Delete?" : "Delete Show"}`} />
+              ) : null}
+              {exitForm ? (
+                <span className="block text-sm text-green-400 mt-2">
+                  Successfully {editShow ? "updated" : "added"} a show
+                </span>
+              ) : (
+                <span className="block text-sm text-gray-500 mt-2">
+                  <span className="text-sm text-red-600">*</span>
+                  These fields are required.
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -293,7 +384,7 @@ export default function DrawAddShow({ handleExitClick, handleShowCount, editShow
   function GenreTag({ genre, onDelete }) {
     return (
       <div className='mr-2 my-1 px-2 py-1 bg-violet-900 h-fit rounded-lg flex flex-wrap items-center'>
-        {genre}
+        {genre.name}
         <Exit
           blue
           onClick={onDelete}

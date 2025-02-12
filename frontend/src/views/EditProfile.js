@@ -46,8 +46,7 @@ export default function DrawEditProfile({ handleExitClick, user }) {
         console.log(error);
       })
 
-    if (typeof changedPicture !== 'string' || (typeof changedPicture === 'string' && user.picture.trim() !== changedPicture.trim())) {
-      if (changedPicture != "") {
+    if (typeof changedPicture !== 'string' || (typeof changedPicture === 'string' && user.picture.trim() !== changedPicture.trim() && changedPicture != "")) {
         const formData = new FormData();
         formData.append('file', changedPicture);
         route = `User/UploadProfilePicture/${contextUser.username}`;
@@ -64,7 +63,6 @@ export default function DrawEditProfile({ handleExitClick, user }) {
           .catch(error => {
             console.log(error)
           })
-      }
     }
 
     setIsLoading(false);
