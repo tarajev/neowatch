@@ -40,17 +40,17 @@ public class UserController : ControllerBase
     }
 
     [AllowAnonymous]
-    [HttpGet("FindUsers/{search}")]
-    public async Task<IActionResult> FindUsers(string search)
+    [HttpGet("FindUsers/{search}/{role}")]
+    public async Task<IActionResult> FindUsers(string search, string role)
     {
-        List<User>? users = await _userService.SearchForUsersAsync(search);
+        List<User>? users = await _userService.SearchForUsersAsync(search, role);
         return Ok(users);
     }
 
-    [HttpGet("FindUsersByEmail/{search}")]
-    public async Task<IActionResult> FindUsersByEmail(string search)
+    [HttpGet("FindUsersByEmail/{search}/{role}")]
+    public async Task<IActionResult> FindUsersByEmail(string search, string role)
     {
-        List<User>? users = await _userService.SearchForUsersByEmailAsync(search);
+        List<User>? users = await _userService.SearchForUsersByEmailAsync(search, role);
         return Ok(users);
     }
 

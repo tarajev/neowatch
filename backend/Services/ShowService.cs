@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Neo4j.Driver;
 using Neo4jClient;
 using Neo4jClient.Cypher;
@@ -116,10 +117,13 @@ public class ShowService
         using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
         await client.ConnectAsync();
 
-        var showFound = await client.Cypher.Match("(s:Show {title: $title})").Return((s) => s.As<Show>()).ResultsAsync;
+        var showFound = await client.Cypher
+            .Match("(s:Show {title: $title})")
+            .WithParam("title", show.title)
+            .Return((s) => s.As<Show>())
+            .ResultsAsync;
 
-        if (showFound != null)
-            return null;
+        if (showFound.Any()) return null;
 
         // merge proveri da li postoji pre kreiranja
         var query = client.Cypher
@@ -160,6 +164,31 @@ public class ShowService
         Console.WriteLine($"NASLOV SERIJE JE:::::::: {result.First().title}");
 
         return result.First();
+    }
+
+    public async Task<bool> UpdateShowThumbnailAsync(string title, string fileUrl)
+    {
+        try
+        {
+            using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
+            await client.ConnectAsync();
+
+            var query = client.Cypher
+                .Match("(s:Show {title: $title})")
+                .WithParam("title", title)
+                .Set("s.imageUrl = $fileUrl")
+                .WithParam("fileUrl", fileUrl)
+                .Return((s) => s.As<Show>());
+
+            var result = await query.ResultsAsync;
+
+            return result.Any();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating show thumbnail: {ex.Message}");
+            return false;
+        }
     }
 
     public async Task<List<Show>> GetAllShows()

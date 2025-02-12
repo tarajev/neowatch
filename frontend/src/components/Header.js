@@ -7,9 +7,11 @@ import AuthorizationContext from "../context/AuthorizationContext";
 import '../assets/colors.css'
 import '../assets/App.css'
 
+import iconGear from "../resources/img/icon-gear.png"
 import iconBurger from "../resources/img/burger-menu.png"
 import iconUser from "../resources/img/icon-user.png"
 import { useNavigate } from "react-router-dom";
+import Tooltip from "./Tooltip";
 
 export default function Header({ overlayActive, overlayHandler }) {
   const { contextUser, contextSetUser } = useContext(AuthorizationContext);
@@ -35,7 +37,7 @@ export default function Header({ overlayActive, overlayHandler }) {
     navigate(`../profile/${username}/watching`);
     window.location.reload();
   }
-  
+
   const handleLogout = () => {
     contextSetUser({
       username: "",
@@ -72,11 +74,9 @@ export default function Header({ overlayActive, overlayHandler }) {
           </span>
           <span className="hidden sm:flex items-center border-y-2 border-gray-400 rounded-md mr-1 py-1 max-w-405">
             {contextUser.role == "Guest" ? (
-              <>
-                <Link className='mx-2 !text-gray-400' preventTab={overlayActive} onClick={handleLoginClick}>
-                  Log in
-                </Link>
-              </>) : null}
+              <Link className='mx-2 text-white' preventTab={overlayActive} onClick={handleLoginClick}>
+                Log in
+              </Link>) : null}
 
             {contextUser.role == "User" ? (
               <>
@@ -92,12 +92,23 @@ export default function Header({ overlayActive, overlayHandler }) {
               </>
             ) : null}
 
-            {contextUser.role != "Guest" ? (
+            {contextUser.role == "Moderator" ? (
               <>
-                <Link className='mx-2 text-white' preventTab={overlayActive} onClick={handleLogout}>
-                  Log out
+                <Link className='!text-white mx-1 ml-2' route="/moderatorpage" preventTab={overlayActive}>
+                  <div className="flex flex-wrap items-center">
+                    <Tooltip text="Moderator Page">
+                      <img src={iconGear} className="filter-white border border-indigo rounded-full w-7 h-7 mr-2" />
+                    </Tooltip>
+                  </div>
                 </Link>
-              </>) : null}
+                <span className="text-gray-400 mb-1 mr-1">|</span>
+              </>
+            ) : null}
+
+            {contextUser.role != "Guest" ? (
+              <Link className='mx-2 text-white' preventTab={overlayActive} onClick={handleLogout}>
+                Log out
+              </Link>) : null}
           </span>
         </div>
       </nav>

@@ -27,9 +27,9 @@ export default function DrawAdministrativePanel() {
 
   const [showChangeProfile, setShowChangeProfile] = useState(false);
   const [showAddAccOrShow, setShowAddAccOrShow] = useState(false);
+  const [showToEdit, setShowToEdit] = useState(false);
   const [overlayActive, setOverlayActive] = useState(false); // Potrebno za prevenciju background-tabovanja kada je forma aktivna
   const [selectedUser, setSelectedUser] = useState(null);
-  const [changes, setChanges] = useState(false);
   const [added, setAdded] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -51,16 +51,15 @@ export default function DrawAdministrativePanel() {
   }, [selectedUser])
 
   useEffect(() => {
-    setChanges(false);
-  }, [selectedCard, changes])
+    setItems([]);
+  }, [selectedCard])
 
   useEffect(() => {
     if (debouncedSearch.length < 3) return;
 
     setIsLoading(true);
-    var route =
-      selectedCard == "User" ?
-        (selectedButton ? `User/FindUsersByEmail/${debouncedSearch}` : `User/FindUsers/${debouncedSearch}`)
+    var route = selectedCard !== "Show" ?
+        (selectedButton ? `User/FindUsersByEmail/${debouncedSearch}/${selectedCard}` : `User/FindUsers/${debouncedSearch}/${selectedCard}`)
         : `Show/SearchShowByTitle/${debouncedSearch}`
 
     axios.get(APIUrl + route, {
@@ -122,24 +121,32 @@ export default function DrawAdministrativePanel() {
 
   const handleExitAccOrShowClick = () => {
     setShowAddAccOrShow(false);
-    setOverlayActive(false);
-  }
-
-  const handleChangeProfileClick = (user) => {
-    setSelectedUser(user);
-    setShowChangeProfile(true);
     setOverlayActive(true);
-  };
+  }
+  
+  const handleEditAccOrShowClick = (item) => {
+    if (selectedCard !== "Show") {
+      setSelectedUser(item);
+      setShowChangeProfile(true);
+    }
+    else { 
+      setShowToEdit(item);
+      setShowAddAccOrShow(true);
+    }
+
+    setOverlayActive(true);
+  }
 
   const handleExitProfileEdit = () => {
     setSearch("");
     setShowChangeProfile(false);
     setOverlayActive(false);
-    setChanges(true);
   }
 
   const handleItemCount = () => {
-    // TODO
+    if (selectedCard === "Show") setShowCount(showCount + 1);
+    // TODO za User i Moderator
+    
     setAdded(!added);
   }
 
@@ -156,7 +163,7 @@ export default function DrawAdministrativePanel() {
       {showChangeProfile && <DrawEditModerator handleExitClick={handleExitProfileEdit} user={selectedUser} />}
       {showAddAccOrShow && (selectedCard !== "Show" ?
         <DrawAddProfile handleExitClick={handleExitAccOrShowClick} /> :
-        <DrawAddShow handleExitClick={handleExitAccOrShowClick} handleShowCount={handleItemCount} />)}
+        <DrawAddShow handleExitClick={handleExitAccOrShowClick} handleShowCount={handleItemCount} show={showToEdit} />)}
       <h3 className="text-3xl font-medium text-white">
         Moderator Panel
       </h3>
@@ -195,7 +202,7 @@ export default function DrawAdministrativePanel() {
             <div className="inline-block min-w-full overflow-hidden align-middle border-b border-gray-200 shadow sm:rounded-lg">
               <table className="min-w-full">
                 <TableHeader selectedCard={selectedCard} />
-                <TableBody selectedCard={selectedCard} items={itemsToShow} changeProfileClick={handleChangeProfileClick} preventTab={overlayActive} />
+                <TableBody selectedCard={selectedCard} items={itemsToShow} changeItemClick={handleEditAccOrShowClick} preventTab={overlayActive} />
               </table>
             </div>
             : null}
@@ -241,7 +248,7 @@ function TableHeader({ selectedCard }) {
   );
 }
 
-function TableBody({ items, selectedCard, changeProfileClick, preventTab }) {
+function TableBody({ items, selectedCard, changeItemClick, preventTab }) {
   function toShortDate(date) {
     const shortDate = new Date(date);
     return shortDate.toLocaleString('en-GB', { timeZoneName: 'short' });
@@ -252,10 +259,10 @@ function TableBody({ items, selectedCard, changeProfileClick, preventTab }) {
       {items.map((item, index) => (
         <tbody key={`${item}_${index}`} className={index % 2 == 0 ? "bg-indigo-950" : "bg-violet-950"}>
           <tr className='text-white'>
-            <td className="px-6 py-4 border-b border-gray-900 whitespace-nowrap">
+            <td className="px-6 py-4 border-  b border-gray-900 whitespace-nowrap">
               <div className="flex items-center">
-                <div className="flex-shrink-0 w-10 h-10">
-                  <img className={`${selectedCard != "Show" ? "w-10 h-10" : "w-15 h-30"} rounded-full`} src={(selectedCard !== "Show" ? (item.picture != null ? `http://localhost:5227${item.picture}` : iconNone) : item.imageUrl)} />
+                <div className="flex-shrink-0 w-10">
+                  <img className={`${selectedCard != "Show" ? "h-10" : ""} w-10 rounded-full`} src={(selectedCard !== "Show" ? (item.picture != null ? `http://localhost:5227${item.picture}` : iconNone) : (item.imageUrl != null ? `http://localhost:5227/${item.imageUrl}` : null))} />
                 </div>
                 <div className="ml-4 text-sm font-medium leading-5">
                   {(selectedCard !== "Show" ? 
@@ -270,7 +277,7 @@ function TableBody({ items, selectedCard, changeProfileClick, preventTab }) {
                 <td className="px-6 py-4 border-b border-gray-900 whitespace-nowrap">{item.email}</td>
                 <td className="px-6 py-4 border-b border-gray-900 whitespace-nowrap">{toShortDate(item.joinedDate)}</td>
                 <td className="px-6 py-4 text-sm font-medium leading-5 text-right border-b border-gray-900 whitespace-nowrap">
-                  <Link preventTab={preventTab} onClick={() => changeProfileClick(item)}>Edit</Link>
+                  <Link preventTab={preventTab} onClick={() => changeItemClick(item)}>Edit</Link>
                 </td>
               </>
             ) : (
@@ -280,7 +287,7 @@ function TableBody({ items, selectedCard, changeProfileClick, preventTab }) {
                 <td className="px-6 py-4 border-b border-gray-900 whitespace-nowrap">{item.numberOfSeasons}</td>
                 <td className="px-6 py-4 border-b border-gray-900 whitespace-nowrap">{item.numberOfReviews ?? "No reviews yet"}</td>
                 <td className="px-6 py-4 text-sm font-medium leading-5 text-right border-b border-gray-900 whitespace-nowrap">
-                  <Link preventTab={preventTab} onClick={() => changeProfileClick(item)}>Edit</Link>
+                  <Link preventTab={preventTab} onClick={() => changeItemClick(item)}>Edit</Link>
                 </td>
               </>
             )}

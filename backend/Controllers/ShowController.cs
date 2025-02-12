@@ -48,6 +48,45 @@ public class ShowController : ControllerBase
         return Ok("Uspesno dodata serija");
     }
 
+    [HttpPut("UploadShowThumbnail/{showTitle}")]
+    public async Task<IActionResult> UploadShowThumbnail(IFormFile file, string showTitle)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest("No file uploaded");
+
+        if (file.Length > 1000000)
+            return BadRequest("File size too large!");
+
+        var show = await _showService.GetShowByTitleAsync(showTitle);
+        if (show == null)
+            return NotFound("Show doesn't exist.");
+
+        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "UploadedFiles", "Shows");
+        if (!Directory.Exists(uploadsFolder))
+            Directory.CreateDirectory(uploadsFolder);
+
+        var fileExtension = Path.GetExtension(file.FileName);
+        var fileName = show.title + fileExtension;
+        var filePath = Path.Combine(uploadsFolder, fileName);
+
+        if (System.IO.File.Exists(filePath))
+            System.IO.File.Delete(filePath);
+
+        using (var stream = new FileStream(filePath, FileMode.Create))
+        {
+            await file.CopyToAsync(stream);
+        }
+
+        var fileUrl = $"/UploadedFiles/Shows/{fileName}";
+
+        bool updateSuccess = await _showService.UpdateShowThumbnailAsync(showTitle, fileUrl);
+
+        if (!updateSuccess)
+            return StatusCode(500, "Failed to update show thumbnail.");
+
+        return Ok(new { fileUrl });
+    }
+
     [HttpPut("UpdateAShow/{oldTitle}")]
     public async Task<IActionResult> UpdateAShow([FromBody] Show show, string oldTitle)
     {

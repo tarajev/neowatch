@@ -257,9 +257,9 @@ export function Input({ placeholder, value, preventTab, date, minDate, maxDate, 
   );
 }
 
-export function FormInput({ text, textClass, labelClass, date, minDate, maxDate, required, multiline, rows, inline, value, type, onChange, onBlur, pattern, className, alertCond, alertText, disabled }) {
+export function FormInput({ text, textClass, labelClass, date, minDate, maxDate, required, multiline, rows, inline, value, type, onChange, onBlur, onKeyDown, pattern, className, alertCond, alertText, disabled }) {
   return (
-    <label className={`block mt-3 ${inline ? "flex flex-nowrap items-center" : ""}`}>
+    <label className={`block mt-1 ${inline ? "flex flex-nowrap items-center" : ""}`}>
       <div className={`${inline ? "mr-2" : ""} ${labelClass}`}>
         <span className={`text-md text-gray-400 ${textClass}`}>
           {text}
@@ -277,6 +277,7 @@ export function FormInput({ text, textClass, labelClass, date, minDate, maxDate,
           max={maxDate}
           spellCheck={false}
           onChange={onChange}
+          onKeyDown={onKeyDown}
           onBlur={onBlur}
           pattern={pattern}
           className={`block w-full mt-1 rounded-md text-gray-200 bg-gray-700 border border-gray-800 p-2 focus:ring outline-none ${alertCond ? "ring ring-red-300" : "ring-indigo-600"} ${className}`}
@@ -289,6 +290,7 @@ export function FormInput({ text, textClass, labelClass, date, minDate, maxDate,
           max={maxDate}
           spellCheck={false}
           onChange={onChange}
+          onKeyDown={onKeyDown}
           disabled={disabled}
           onBlur={onBlur}
           pattern={pattern}

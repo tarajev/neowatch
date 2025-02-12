@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-export default function Tooltip({ text, hideOn, top, children }) {
+export default function Tooltip({ text, hideOn, top, right, children, className }) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -17,12 +17,18 @@ export default function Tooltip({ text, hideOn, top, children }) {
       {children}
       {visible && text && (
         <div 
-          className={`absolute ${top ? 'bottom-full' : ''} left-1/2 transform -translate-x-1/2 mt-2 w-40 fade-in bg-gray-900 text-indigo-600 hover:text-indigo-400 text-center text-sm rounded py-2 px-3 shadow-lg`}
-          style={{ marginTop: top ? '0rem' : '0.5rem', marginBottom: top ? '1rem' : '0' }}
+          className={`${className} z-[999] absolute bg-gray-900 text-white text-center text-sm rounded py-2 px-3 shadow-lg fade-in
+            ${top ? 'bottom-full mb-2' : ''} 
+            ${right ? 'left-full ml-2 top-1/2 -translate-y-1/2' : 'left-1/2 transform -translate-x-1/2 mt-2 w-40'}`}
         >
           <p className='truncate'>{text}</p>
+          {/* Tooltip Arrow */}
           <div 
-            className={`absolute ${top ? '' : 'bottom-full'} left-1/2 transform -translate-x-1/2 w-3 h-3 ${top ? 'mt-0.5' : '-mb-2'} bg-gray-900 border-${top ? 'b' : 't'} border-${top ? 'r' : 'l'} border-indigo-950 rotate-45`}
+            className={`absolute w-3 h-3 bg-gray-900 rotate-45
+              ${top ? 'top-full left-1/2 -translate-x-1/2 -mt-2' : ''}
+              ${right ? 'left-[-0.35rem] top-1/2 -translate-y-1/2' : ''}
+              ${!top && !right ? 'bottom-full left-1/2 -translate-x-1/2 -mb-2' : ''}
+            `}
           ></div>
         </div>
       )}

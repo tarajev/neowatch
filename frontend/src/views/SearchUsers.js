@@ -28,7 +28,7 @@ export default function DrawSearchUsers({ handleExitClick }) {
     if (debouncedSearch.length < 3) return;
 
     setIsLoading(true);
-    var route = `User/FindUsers/${debouncedSearch}`;
+    var route = `User/FindUsers/${debouncedSearch}/User`;
 
     axios.get(APIUrl + route, {
       headers: {

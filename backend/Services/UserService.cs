@@ -64,15 +64,19 @@ public class UserService
         return [userCount, moderatorCount];
     }
 
-    public async Task<List<User>?> SearchForUsersAsync(string search)
+    public async Task<List<User>?> SearchForUsersAsync(string search, string role)
     {
         using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
         await client.ConnectAsync();
 
         var query = client.Cypher
             .Match("(u:User)")
-            .Where("u.username CONTAINS $searchTerm")
-            .WithParam("searchTerm", search)
+            .Where("u.username CONTAINS $search")
+            .AndWhere("u.role = $role")
+            .WithParams(new {
+                search,
+                role
+            })
             .Return(u => u.As<User>());
 
         var result = await query.ResultsAsync;
@@ -87,15 +91,19 @@ public class UserService
         return result.ToList();
     }
 
-    public async Task<List<User>?> SearchForUsersByEmailAsync(string search)
+    public async Task<List<User>?> SearchForUsersByEmailAsync(string search, string role)
     {
         using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
         await client.ConnectAsync();
 
         var query = client.Cypher
             .Match("(u:User)")
-            .Where("u.email CONTAINS $searchTerm")
-            .WithParam("searchTerm", search)
+            .Where("u.email CONTAINS $search")
+            .AndWhere("u.role = $role")
+            .WithParams(new {
+                search,
+                role
+            })
             .Return(u => u.As<User>());
 
         var result = await query.ResultsAsync;
