@@ -2,9 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link } from '../components/BasicComponents';
 import Tooltip from '../components/Tooltip';
 
-export default function BurgerMenu({ preventTab, icon, filter, size, xOffset, yOffset, className, listItemArray, grouped, hoverText }) {
+export default function BurgerMenu({ preventTab, icon, white, size, xOffset, yOffset, className, listItemArray, grouped, hoverText }) {
   const [burgerClicked, setBurgerClicked] = useState(false);
   const formRef = useRef(null);
+  
+  if (!listItemArray) console.log("BurgerMenu doesn't have any items. Add items to display the menu correctly.");
 
   useEffect(() => { // Klik van komponente
     function handleClickOutside(event) {
@@ -18,10 +20,6 @@ export default function BurgerMenu({ preventTab, icon, filter, size, xOffset, yO
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
-
-  if (!listItemArray) {
-    console.log("BurgerMenu doesn't have any items. Add items to display the menu correctly.");
-  }
 
   const toggleBurgerClicked = () => {
     setBurgerClicked(!burgerClicked);
@@ -39,7 +37,7 @@ export default function BurgerMenu({ preventTab, icon, filter, size, xOffset, yO
           <img
             tabIndex={-1}
             src={icon}
-            className={`h-${size} w-${size} outline-none ${filter ? 'filter-indigo' : ''}`}
+            className={`h-${size} w-${size} outline-none ${white ? 'filter-white' : ''}`}
           />
         </Tooltip>
       </a>

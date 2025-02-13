@@ -62,8 +62,8 @@ export default function DrawSearchUsers({ handleExitClick }) {
   }, []);
 
   return (
-    <div className="left-0 top-0 overlay show">
-      <div className="sm:flex sm:items-center hidescrollbar overscroll-contain sm:justify-center h-screen overflow-y-auto">
+    <div className="left-0 overlay show">
+      <div className="flex items-center hidescrollbar overscroll-contain sm:justify-center h-screen overflow-y-auto">
         <div ref={formRef} className='w-full max-w-2xl p-6 bg-gray-900 border-y-4 border-violet-900 rounded-lg shadow-2xl shadow-indigo-500/40 fade-in fade-in h-96'>
           <Exit
             blue

@@ -54,8 +54,11 @@ export default function Header({ overlayActive, overlayHandler }) {
     window.location.reload();
   }
 
-  // TODO - BurgerMenu itemList da se uradi
-  // TODO - contextUser da se uradi dinamicki Header
+  const burgerMenuItems = [];
+  if (contextUser.role === "User") burgerMenuItems.push({ route: `/profile/${contextUser.username}/watching`, name: "Profile" });
+  if (contextUser.role === "Moderator") burgerMenuItems.push({ route: `/moderatorpage`, name: "Moderator Page" });
+  if (contextUser.role !== "Guest") burgerMenuItems.push({ route: '/', onClick: handleLogout, name: "Log out" });
+  if (contextUser.role === "Guest") burgerMenuItems.push({ route: `/`, onClick: handleLoginClick, name: "Login" });
 
   return (
     <div className={`pt-16 sticky top-0 z-50`}>
@@ -70,7 +73,7 @@ export default function Header({ overlayActive, overlayHandler }) {
             />
           </Link>
           <span className="block sm:hidden">
-            <BurgerMenu preventTab={overlayActive} icon={iconBurger} listItemArray={null} grouped size={10} />
+            <BurgerMenu preventTab={overlayActive} white icon={iconBurger} listItemArray={burgerMenuItems} size={10} />
           </span>
           <span className="hidden sm:flex items-center border-y-2 border-gray-400 rounded-md mr-1 py-1 max-w-405">
             {contextUser.role == "Guest" ? (

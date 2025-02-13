@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useContext } from 'react'
-import { FormButton, FormInput, Password } from '../components/BasicComponents'
+import { Exit, FormButton, FormInput, Password } from '../components/BasicComponents'
 import AuthorizationContext from '../context/AuthorizationContext';
 import { useDebounce } from 'use-debounce';
 import axios from 'axios';
@@ -90,8 +90,9 @@ export default function DrawAddProfile({ handleExitClick }) {
         <div ref={formRef} className='w-96 flex flex-col max-w-2xl p-6 bg-gray-900 border-y-4 border-violet-900 rounded-lg shadow-2xl shadow-violet-500/40 fade-in'>
           <div>
             <div>
-              <div className='mb-4 w-full flex justify-center border-b border-violet-900'>
-                <p className='mb-2 text-xl text-gray-400'>Create a moderator account</p>
+              <Exit className="w-4 ml-auto" onClick={handleExitClick} />
+              <div className='mb-4 w-full justify-center flex border-b border-violet-900'>
+                <p className='mb-2 text-xl text-gray-400 justify-self-center'>Create a moderator account</p>
               </div>
 
               <div className='mb-4'>

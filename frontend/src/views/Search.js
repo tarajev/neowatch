@@ -189,7 +189,7 @@ export default function DrawSearchTvShows() {
         {currentSeries && currentSeries.map((tvShow, index) => (
           <div
             key={tvShow.id + "_" + index}
-            className="relative grid col-span-12 md:col-span-3 sm:col-span-4 place-items-center cursor-pointer drop-shadow-[0_5px_5px_rgba(0,0,0,0.55)] transition ease-in-out delay-150"
+            className="relative grid col-span-12 sm:col-span-6 md:col-span-4 lg:col-span-3 place-items-center cursor-pointer drop-shadow-[0_5px_5px_rgba(0,0,0,0.55)] transition ease-in-out delay-150"
             onClick={() => handleTvShowClick(tvShow)}
           >
             <img

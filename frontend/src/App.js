@@ -38,7 +38,7 @@ function App() {
             <Route path="/landingpage" element={<LandingPage />} />
             <Route path="/profile/:username/:tab" element={<Profile />} />
             <Route path="/moderatorpage" element={<ModeratorPage />} />
-            <Route path="NotFound" element={<DrawNotFound />} />
+            <Route path="*" element={<DrawNotFound />} />
           </Routes>
         </BrowserRouter>
       </AuthorizationContext.Provider>

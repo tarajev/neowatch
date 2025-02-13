@@ -265,13 +265,14 @@ export default function DrawAddOrEditShow({ handleExitClick, handleShowCount, ed
 
   return (
     <div className="left-0 top-0 overlay show">
-      <div className="flex items-center hidescrollbar overscroll-contain justify-center h-screen overflow-y-auto">
-        <div ref={formRef} className='w-250 flex flex-col p-6 bg-gray-900 border-y-4 border-violet-900 rounded-lg shadow-2xl shadow-violet-500/40 fade-in'>
+      <div className="flex md:items-center hidescrollbar overscroll-contain justify-center h-screen overflow-y-auto">
+        <div ref={formRef} className='w-250 h-fit flex flex-col p-6 bg-gray-900 border-y-4 border-violet-900 rounded-lg shadow-2xl shadow-violet-500/40 fade-in'>
+          <Exit className="w-4 ml-auto" onClick={handleExitClick} />
           <div className='mb-4 w-full flex justify-center border-b border-violet-900'>
             <p className='mb-2 text-xl text-gray-400'>Add a show</p>
           </div>
 
-          <div className='grid grid-cols-3'>
+          <div className='grid md:grid-cols-3'>
             <div className="border border-violet-900 rounded-xl p-4 my-2 mr-2">
               <div className='flex justify-center'>
                 <p className="text-gray-400">Thumbnail:</p>

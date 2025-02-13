@@ -218,11 +218,11 @@ export default function DrawProfile() {
 
       {/* TOP SECTION */}
       <div className='grid grid-cols-12 gap-4 h-44 mb-4'>
-        <div className='col-span-2 bg-indigo-950 border border-violet-900 rounded-xl content-center '>
-          <img className={`max-w-36 max-h-36 justify-self-center border border-violet-900 rounded-l ${userInfo?.picture == null && "filter-white w-28"}`} src={userInfo?.picture != null ? `http://localhost:5227${userInfo?.picture}` : iconUser} />
+        <div className='col-span-3 md:col-span-2 overflow-x-clip bg-indigo-950 border border-violet-900 rounded-xl content-center '>
+          <img className={`max-w-36 max-h-36 justify-self-center border border-violet-900 rounded-lg ${userInfo?.picture == null && "filter-white w-28"}`} src={userInfo?.picture != null ? `http://localhost:5227${userInfo?.picture}` : iconUser} />
           <p className='text-gray-400 font-bold text-center p-3 -mb-3'>{userInfo?.username ?? "loading..."}</p>
         </div>
-        <div className='col-span-10'>
+        <div className='col-span-9 md:col-span-10'>
           <div className='grid grid-cols-3 gap-4 text-gray-400 text-center'>
             <div className='col-span-3 font-bold text-4xl text-white'>
               Show Statistics
@@ -230,22 +230,23 @@ export default function DrawProfile() {
             <div className='bg-indigo-950 border border-violet-900 rounded-xl'>
               <p className='section-title !text-6xl'>{userStats?.watchingCount}</p>
               <div className='flex bg-indigo-950 border-t mx-4 py-1 border-violet-900 justify-center items-center'>
-                <span className='bg-green-700 w-3 h-3 rounded-full mr-1' />
-                <span>Watching</span>
+                <span className='hidden sm:block bg-green-700 w-3 h-3 rounded-full mr-1' />
+                <span className='text-green-700 sm:text-gray-400'>Watching</span>
               </div>
             </div>
             <div className='bg-indigo-950 border border-violet-900 rounded-xl'>
               <p className='section-title !text-6xl'>{userStats?.watchedCount}</p>
               <div className='flex bg-indigo-950 border-t mx-4 py-1 border-violet-900 justify-center items-center'>
-                <span className='bg-blue-700 w-3 h-3 rounded-full mr-1' />
-                <span>Completed</span>
+                <span className='hidden sm:block bg-blue-700 w-3 h-3 rounded-full mr-1' />
+                <span className='text-blue-700 sm:text-gray-400'>Completed</span>
               </div>
             </div>
             <div className='bg-indigo-950 border border-violet-900 rounded-xl'>
               <p className='section-title !text-6xl'>{userStats?.planToWatchCount}</p>
               <div className='flex bg-indigo-950 border-t mx-4 py-1 border-violet-900 justify-center items-center'>
-                <span className='bg-gray-700 w-3 h-3 rounded-full mr-1' />
-                <span>Plan to Watch</span>
+                <span className='hidden sm:block bg-gray-700 w-3 h-3 rounded-full mr-1' />
+                <span className='hidden sm:block sm:mr-1'>In</span>
+                <span>Watchlist</span>
               </div>
             </div>
             <div className='col-span-3 align-bottom'>
@@ -256,10 +257,10 @@ export default function DrawProfile() {
       </div>
 
       <div className='grid grid-cols-11 text-gray-400 mt-6'>
-        <div className='col-span-8 bg-indigo-950 border border-violet-900 rounded-xl mr-3 px-3 py-1'>
+        <div className='col-span-6 sm:col-span-8 bg-indigo-950 border border-violet-900 rounded-xl mr-3 px-3 py-1'>
           <p>{userInfo?.bio ?? "User has no bio."}</p>
         </div>
-        <div className='col-span-3'>
+        <div className='col-span-5 sm:col-span-3'>
           <div className='bg-indigo-950 border border-violet-900 rounded-xl ml-1 px-3 py-1 h-fit'>
             <p className='section-title !text-2xl !mb-0 justify-self-center'>{userStats?.followersCount} followers</p>
             {contextUser.username !== username && contextUser.role != "Guest" ? (
@@ -288,28 +289,28 @@ export default function DrawProfile() {
 
       {/* BOTTOM SECTION */}
       <div className='pt-5'>
-        <CollapsiblePanel title="Currently Watching:" open={openList==="watching" ? true : false}>
-          <div className='grid grid-cols-6 gap-4 p-2'>
-            {showsWatching.length == 0 && <p className='col-span-2'>This user has no shows currently watching.</p>}
+        <CollapsiblePanel title="Currently Watching:" open={openList === "watching" ? true : false}>
+          <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-8 lg:grid-cols-6 gap-4 p-2'>
+            {showsWatching.length == 0 && <p className='col-span-2 md:col-span-4 lg:col-span-2'>This user has no shows currently watching.</p>}
             {console.log("broj serija:" + showsWatching.length)}
             {showsWatching.map((show, index) => (
-              <SeriesSlot key={`watching-${index}`} title={show.title} image={show.imageurl} func={() => displayShowInfo(show)} />
+              <SeriesSlot key={`watching-${index}`} title={show.title} image={`http://localhost:5227${show.imageUrl}`} func={() => displayShowInfo(show)} />
             ))}
           </div>
         </CollapsiblePanel>
-        <CollapsiblePanel title="Watched Shows:" open={openList==="watched" ? true : false}>
-          <div className='grid grid-cols-6 gap-4 p-2'>
-            {showsWatched.length == 0 && <p className='col-span-2'>This user has no shows watched.</p>}
+        <CollapsiblePanel title="Watched Shows:" open={openList === "watched" ? true : false}>
+          <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-8 lg:grid-cols-6 gap-4 p-2'>
+            {showsWatched.length == 0 && <p className='col-span-2 mg:col-span-4 lg:col-span-2'>This user has no shows watched.</p>}
             {showsWatched.map((show, index) => (
-              <SeriesSlot key={`watched-${index}`} title={show.title} image={show.imageurl} func={() => displayShowInfo(show)} />
+              <SeriesSlot key={`watched-${index}`} title={show.title} image={`http://localhost:5227${show.imageUrl}`} func={() => displayShowInfo(show)} />
             ))}
           </div>
         </CollapsiblePanel>
-        <CollapsiblePanel title="Plans to Watch:" open={openList==="towatch" ? true : false}> 
-          <div className='grid grid-cols-6 gap-4 p-2'>
-            {showsToWatch.length == 0 && <p className='col-span-3'>This user has no planned shows to watch.</p>}
+        <CollapsiblePanel title="Plans to Watch:" open={openList === "towatch" ? true : false}>
+          <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-8 lg:grid-cols-6 gap-4 p-2'>
+            {showsToWatch.length == 0 && <p className='col-span-2 md:col-span-4 lg:col-span-3'>This user has no planned shows to watch.</p>}
             {showsToWatch.map((show, index) => (
-              <SeriesSlot key={`planstowatch-${index}`} title={show.title} image={show.imageurl} func={() => displayShowInfo(show)} />
+              <SeriesSlot key={`planstowatch-${index}`} title={show.title} image={`http://localhost:5227${show.imageUrl}`} func={() => displayShowInfo(show)} />
             ))}
           </div>
         </CollapsiblePanel>
@@ -322,11 +323,12 @@ function SeriesSlot({ title, image, func, preventTab }) {
   return ( // Mora <a> da bi moglo da se fokusira TAB-om
     <a
       href="#"
+      className='col-span-1 md:col-span-2 lg:col-span-1'
       tabIndex={preventTab ? -1 : 0}
       onClick={() => func()}
     >
       <div className='border border-violet-900 hover:shadow-md hover:shadow-violet-500/50 hover:bg-violet-900 transition-all rounded-xl'>
-        <img src={image} className='h-64 pt-2 px-2 rounded-2xl' />
+        <img src={image} className='h-64 pt-2 px-2 rounded-2xl justify-self-center' />
         <p className='justify-self-center p-1 text-center'>{title}</p>
       </div>
     </a>

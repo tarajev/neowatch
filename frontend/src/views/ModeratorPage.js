@@ -160,7 +160,7 @@ export default function DrawAdministrativePanel() {
         <StatCountCard setSelectedFunc={setSelectedCard} setSelectedType={"Show"} selectedCard={selectedCard} logo={iconSeries} text="Shows" number={showCount} preventTab={overlayActive} />
       </div>
 
-      <div className='grid gap-4 sm:grid-cols-1 md:grid-cols-8 xl:grid-cols-4'>
+      <div className='grid gap-4 md:grid-cols-8 xl:grid-cols-4'>
         <div className='grid md:col-span-8 h-fit lg:col-span-8 xl:col-span-4 bg-indigo-950 shadow-lg rounded-lg p-3 mt-6'>
           <div className='flex justify-between'>
             <div>
@@ -290,7 +290,7 @@ function StatCountCard({ setSelectedFunc, setSelectedType, selectedCard, logo, t
       href="#"
       tabIndex={preventTab ? -1 : 0}
       onClick={() => setSelectedFunc(setSelectedType)}
-      className={`cursor-pointer col-span-4 sm:col-span-2 lg:col-span-1 bg-gradient-to-r from-indigo-950 to-violet-950 border-y border-violet-900 rounded-md animated-shadow ${selectedCard === setSelectedType ? "card-selected" : ""}`}
+      className={`cursor-pointer col-span-4 sm:col-span-3 lg:col-span-1 bg-gradient-to-r from-indigo-950 to-violet-950 border-y border-violet-900 rounded-md animated-shadow ${selectedCard === setSelectedType ? "card-selected" : ""}`}
     >
       <div className="flex items-center px-5 py-6">
         <div className="p-3 bg-violet-900 rounded-full">
