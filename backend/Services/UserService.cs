@@ -688,11 +688,12 @@ public class UserService
             return false;
         }
 
+         var commentText = comment!="" ? comment : null;  
         // Dodaje ili azurira review
         await client.Cypher
-            .Match("(u:User {username: $username})-[w:WATCHED]->(s:Show {title: $showTitle})")
-            .WithParams(new { username, showTitle, rating, comment })
-            .Set("w.rating = $rating, w.comment = $comment")
+            .Merge("(u:User {username: $username})-[w:WATCHED]->(s:Show {title: $showTitle})")
+            .WithParams(new { username, showTitle, rating, commentText })
+            .Set("w.rating = $rating, w.comment = $commentText")
             .ExecuteWithoutResultsAsync();
 
         Console.WriteLine($"Review added/updated for user {username} on show {showTitle}.");

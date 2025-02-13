@@ -109,16 +109,17 @@ export default function ShowInfo({ show, handleExitClick }) {
                     <div className="grid gap-5 grid-cols-8 grid-rows-[auto,auto] h-fit">
                         <div className="flex flex-col col-span-3">
                             <img
-                                src={`../images/${show.imageUrl}`}
+                                src={`http://localhost:5227${show.imageUrl}`}
                                 alt={show.title}
                                 className="w-48 h-88 object-cover rounded-lg col-span-3 mb-2"
                             />
+                            {contextUser.role == "User" ? 
                             <div className="col-span-3 col-start-1 h-fit p-0">
                                 {/*<Button className='drop-shadow-md rounded-md px-2 py-1 w-full mb-2' onClick={handleAddReview}>Review</Button>*/} {/*Ovo će ići kroz watched za sada*/}
                                 <Button className='drop-shadow-md rounded-md px-2 py-1 w-full mb-2' onClick={handleAddToWatchlist}>Add To Watchlist</Button>
                                 <Button className='drop-shadow-md rounded-md px-2 py-1 w-full mb-2' onClick={handleAddToWatching}>Add to Watching</Button>
                                 <Button className='drop-shadow-md rounded-md px-2 py-1 w-full' onClick={handleAddToWatched}>Add to Watched</Button>
-                            </div>
+                            </div> : (<></>)}
                         </div>
                         <div className="col-span-5 col-start-4 row-start-1">
                             <h2 className="text-white text-3xl font-mono font-semibold col-span-5 text-wrap">{show.title}</h2>
@@ -126,7 +127,7 @@ export default function ShowInfo({ show, handleExitClick }) {
                                 <span className="text-white opacity-60">
                                     {show.year} | {show.numberOfSeasons} {show.numberOfSeasons > 0 ? "Seasons" : "Season"} |
                                 </span>
-                                <Rating name="half-rating-read" defaultValue={4} precision={0.5} size="small" readOnly /> {/*ispraviti na rating serije ili ako ne postoji da to pise?*/}
+                             { show.rating ? <Rating name="half-rating-read" defaultValue={show.rating} precision={0.5} size="small" readOnly /> : <span className="text-white opacity-60"> Not rated </span> }{/*ispraviti na rating serije ili ako ne postoji da to pise?*/}
                             </div>
                             <div className="flex flex-wrap items-center gap-x-6 mb-5">
                                 {show.genres.map((genre) => (
@@ -135,7 +136,7 @@ export default function ShowInfo({ show, handleExitClick }) {
                             </div>
                             <div className="w-fit ">
                                 <p className="text-white opacity-60 break-normal">{show.desc}</p></div>
-                            <div className="flex flex-wrap gap-x-2 mt-4 h-4">
+                            <div className="flex flex-wrap gap-x-2 mt-4 h-4 h-fit">
                                 <span className="text-white opacity-80 font-semibold mr-1">Cast:</span>
                                 {show.cast.map((a, index) => (
                                     <span key={index} className="group text-white opacity-80 inline-block max-w-xs cursor-pointer relative">

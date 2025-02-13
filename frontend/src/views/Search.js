@@ -193,7 +193,7 @@ export default function DrawSearchTvShows() {
             onClick={() => handleTvShowClick(tvShow)}
           >
             <img
-              src={`/images/${tvShow.imageUrl}`} //kako se čuvaju slike treba srediti
+              src={`http://localhost:5227${tvShow.imageUrl}`}
               className="w-full h-full object-cover rounded-lg transition duration-300 ease-in-out"
             />
             <div className="absolute inset-0 bg-black bg-opacity-60 opacity-0 hover:opacity-100 transition-opacity duration-300 rounded-lg flex items-center justify-center">

@@ -46,7 +46,7 @@ export default function WriteAReview({ handleExitClick, tvShowName }) {
             username: contextUser.username,
             title: tvShowName,
             rating: stars,
-            comment: review
+            comment: review!="" ? review : null
         };
         await axios.put(APIUrl + "User/AddReview", reviewData, {
             headers: {
@@ -133,7 +133,7 @@ export default function WriteAReview({ handleExitClick, tvShowName }) {
                                 text="Submit"
                                 onClick={handleSubmitButtonOnClick}
                                 className="w-fit"
-                                disabled={stars === 0 | stars == null | review === ""}
+                                disabled={stars === 0 | stars == null}
                             />
                             <FormButton
                                 text="Skip this step"

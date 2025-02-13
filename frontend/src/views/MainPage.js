@@ -3,10 +3,11 @@ import axios from 'axios';
 import AuthorizationContext from '../context/AuthorizationContext'
 import { Page, Link } from '../components/BasicComponents'
 import Tabs from "../components/Tabs";
+import imagePlaceholder from "../resources/img/image-placeholder.png"
 import '../assets/colors.css'
 import '../assets/animations.css'
 import DrawRecommendationsPage from './RecommendationsPage'
-import profilePhoto from "../images/profilepicture.jpg";
+
 import DrawSearchTvShows from './Search';
 
 export default function DrawMainPage() {
@@ -57,7 +58,7 @@ export default function DrawMainPage() {
               <div className="w-full h-full bg-[#5700a2] overflow-x-clip p-4 flex flex-col items-center rounded-tr-xl rounded-br-xl">
 
                 <div className="w-32 h-32 overflow-hidden rounded-full border-2 border-white">
-                  <img src={profilePhoto} alt="Profile" className="w-full h-full object-cover" /> {/*podaci se izvlače iz contextUser-a*/}
+                  <img src={contextUser.role == "User" ? `http://localhost:5227${contextUser.picture} ` : imagePlaceholder} alt="Profile" className="w-full h-full object-cover" /> {/*podaci se izvlače iz contextUser-a*/}
                 </div>
                 <h2 className="mt-4 text-white text-lg font-semibold">{contextUser.username}</h2>
                 <div class="lg:flex lg:space-x-8 justify-center p-4">
