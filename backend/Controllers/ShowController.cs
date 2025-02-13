@@ -34,18 +34,19 @@ public class ShowController : ControllerBase
     [HttpPost("CreateAShow")]
     public async Task<IActionResult> CreateAShow([FromBody] Show newShow)
     {
+
         if (newShow == null)
         {
             return BadRequest("Serija nije prosleđena.");
         }
 
         var show = await _showService.CreateShowAsync(newShow);
-        if (show == null)
+       if (show == null)
         {
             return StatusCode(500, "Došlo je do greške pri kreiranju serije.");
         }
 
-        return Ok("Uspesno dodata serija");
+        return Ok("Uspesno dodata serija"); 
     }
 
     [HttpPut("UploadShowThumbnail/{showTitle}")]
@@ -86,6 +87,7 @@ public class ShowController : ControllerBase
 
         return Ok(new { fileUrl });
     }
+
 
     [HttpPut("UpdateAShow/{oldTitle}")]
     public async Task<IActionResult> UpdateAShow([FromBody] Show show, string oldTitle)

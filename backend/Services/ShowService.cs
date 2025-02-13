@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Neo4j.Driver;
 using Neo4jClient;
 using Neo4jClient.Cypher;
@@ -258,6 +259,14 @@ public class ShowService
         if (show.numberOfSeasons > 0)
             query = query.Set("s.numberOfSeasons = $numSeasons").WithParam("numSeasons", show.numberOfSeasons);
 
+        var existingActorsQuery = client.Cypher
+               .Match("(s:Show {title: $title})<-[r:ACTED_IN]-(a:Actor)")
+               .WithParam("title", show.title)
+               .With("COLLECT(DISTINCT { actor: { name: a.name }, role: r.role }) AS acted")
+               .Return(acted => acted.As<List<ActedIn>>());
+
+        var existingActors = (await existingActorsQuery.ResultsAsync).FirstOrDefault();
+
         if (show.genres != null && show.genres.Any()) //treba da uradim za izbacivanje zanrova!! ?
         {
             foreach (var genre in show.genres)
@@ -271,34 +280,63 @@ public class ShowService
             }
         }
 
-        if (show.cast != null && show.cast.Any())
-        {
-            var existingActorsQuery = client.Cypher
-                .Match("(s:Show {title: $title})<-[:ACTED_IN]-(a:Actor)")
+        var existingGenresQuery = client.Cypher
+                .Match("(s:Show {title: $title})-[:IN_GENRE]->(g:Genre)")
                 .WithParam("title", show.title)
-                .Return(a => a.As<ActedIn>());
+                .With("COLLECT(DISTINCT g) AS genres")
+                .Return(genres => genres.As<List<Genre>>());
 
-            var existingActors = (await existingActorsQuery.ResultsAsync).ToList();
+        var existingGenres = (await existingGenresQuery.ResultsAsync).FirstOrDefault();
 
-            var actorsToRemove = existingActors.Where(ea => !show.cast.Any(newActor => newActor.actor.name == ea.actor.name)).ToList();
-            foreach (var actorToRemove in actorsToRemove)
+        var genresToRemove = existingGenres.Where(eg => !show.genres.Any(sg => sg.name == eg.name)).ToList();
+
+        if (genresToRemove.Count() > 0)
+        {
+             foreach (var genre in genresToRemove)
+                {
+                    var index = genresToRemove.IndexOf(genre);
+                    var genreKey = $"g_{index}";
+                    query = query
+                        .With("s")
+                        .Match($"(s)-[r_{index}:IN_GENRE]->({genreKey}:Genre {{name: $gnr_{index}}})")
+                        .WithParam($"gnr_{index}", genre.name)
+                        .Delete($"r_{index}");
+                }
+        }
+
+        if (show.cast != null && show.cast.Count != 0)
+        {
+            var castActorNames = show.cast.Select(c => c.actor.name).ToList();
+            var actorsToRemove = existingActors
+                .Where(ea => ea.actor != null && !castActorNames.Contains(ea.actor.name))
+                .ToList();
+
+            if (actorsToRemove.Count() > 0)
             {
-                query = query
-                    .Match("(s:Show {title: $title1})<-[:ACTED_IN]-(a:Actor)")
-                    .Where("a.name = $actorName")
-                    .WithParam("actorName", actorToRemove.actor.name)
-                    .WithParam("title1", oldTitle)
-                    .Delete("s<-[:ACTED_IN]-a");
+                foreach (var actorToRemove in actorsToRemove)
+                {
+                    var index = actorsToRemove.IndexOf(actorToRemove);
+                    var actorKey = $"a{index}";
+                    query = query
+                        .With("s")
+                        .Match($"(s:Show {{title: $title1}})<-[r_{index}:ACTED_IN]-({actorKey}:Actor {{name: $a_{index}}})")
+                        .WithParam($"a_{index}", actorToRemove.actor.name)
+                        .WithParam("title1", oldTitle)
+                        .Delete($"r_{index}");
+                }
             }
-
             foreach (var actor in show.cast)
             {
                 var index = show.cast.IndexOf(actor);
-                var actorKey = $"a{index}";
+                var actorKey = $"actor{index}";
+                var rKey = $"r{index}";
                 query = query
-                    .Merge($"({actorKey}:Actor {{name: $an_{index}}})")
+                    .Merge($"({actorKey}:Actor {{name: $an_{index}}})") //mora odvojeno da ne bi kreiralo glumca ponovo
                     .WithParam($"an_{index}", actor.actor.name)
-                    .Merge($"(s)<-[:ACTED_IN]-({actorKey})");
+                    .Merge($"(s)<-[{rKey}:ACTED_IN]-({actorKey})")
+                    .OnCreate()
+                    .Set($"{rKey}.role = $rl_{index}")
+                    .WithParam($"rl_{index}", actor.role);
             }
         }
 
