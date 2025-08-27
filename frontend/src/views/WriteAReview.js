@@ -6,7 +6,7 @@ import AuthorizationContext from '../context/AuthorizationContext'
 import axios from 'axios'
 import '../assets/colors.css'
 
-export default function WriteAReview({ handleExitClick, tvShowName }) {
+export default function WriteAReview({ handleExitClick, tvShowName, addToWatched}) {
     const { APIUrl, contextUser } = useContext(AuthorizationContext);
     const [review, setReview] = useState("");
     const [stars, setStars] = useState(0);
@@ -30,6 +30,7 @@ export default function WriteAReview({ handleExitClick, tvShowName }) {
         try {
             await addToWatched();
             await leaveAReview();
+            handleExitClick();
         } catch (err) {
             console.error("Greška prilikom dodavanja serije ili recenzije:", err);
             alert("An error occurred. Please try again.");
@@ -39,6 +40,7 @@ export default function WriteAReview({ handleExitClick, tvShowName }) {
     const handleSkipButtonOnClick = async (e) => {
         e.preventDefault();
         addToWatched();
+        handleExitClick();
     };
 
     const leaveAReview = async () => {
@@ -58,23 +60,6 @@ export default function WriteAReview({ handleExitClick, tvShowName }) {
         }).catch(err => console.log(err)); //ovde ako dodje do greške da se ispiše nešto?
     };
 
-    const addToWatched = async () => {
-        await axios.put(APIUrl + "User/AddShowWatched", {
-            userName: contextUser.username,
-            tvShowTitle: tvShowName
-        },
-            {
-                headers: {
-                    Authorization: `Bearer ${contextUser.jwtToken}`
-                },
-
-            }).then(response => {
-                console.log(response);
-                if (stars === 0 && review === "")
-                    handleExitClick(); //samo u slucaju da se review ne salje
-            })
-            .catch(err => console.log(err)); //neki alert nesto?
-    }
 
     return (
         <div className="overlay show h-screen w-screen left-0 right-0">

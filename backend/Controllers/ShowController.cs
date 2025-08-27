@@ -28,7 +28,7 @@ public class ShowController : ControllerBase
     public async Task<IActionResult> GetUserCount()
     {
         var count = await _showService.GetShowCountAsync();
-        return Ok(count); 
+        return Ok(count);
     }
 
     [HttpPost("CreateAShow")]
@@ -41,12 +41,12 @@ public class ShowController : ControllerBase
         }
 
         var show = await _showService.CreateShowAsync(newShow);
-       if (show == null)
+        if (show == null)
         {
             return StatusCode(500, "Došlo je do greške pri kreiranju serije.");
         }
 
-        return Ok("Uspesno dodata serija"); 
+        return Ok("Uspesno dodata serija");
     }
 
     [HttpPut("UploadShowThumbnail/{showTitle}")]
@@ -210,5 +210,16 @@ public class ShowController : ControllerBase
             genres = result.genres,
             cast = result.cast
         });
+    }
+    
+    [AllowAnonymous]
+    [HttpGet("GetTvShowReviews/{showTitle}/{page}/{pageSize}")]
+    public async Task<IActionResult> GetTvShowReviews(string showTitle, int page, int pageSize)
+    {
+        var result = await _showService.GetTvShowReviews(showTitle, page, pageSize);
+        if (result == null)
+            return BadRequest("Došlo je do greške pri pribavljanju recenzija");
+
+        return Ok(result);
     }
 }

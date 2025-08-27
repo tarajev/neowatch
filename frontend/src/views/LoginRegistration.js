@@ -6,6 +6,7 @@ import '../assets/animations.css';
 import '../assets/App.css'
 import axios from 'axios';
 import AuthorizationContext from '../context/AuthorizationContext';
+import { useNavigate } from "react-router-dom";
 
 export function DrawRegistration({ onLoginClick, exitRegistration, handleLoginClick }) {
   const { APIUrl } = useContext(AuthorizationContext);
@@ -23,6 +24,7 @@ export function DrawRegistration({ onLoginClick, exitRegistration, handleLoginCl
   const [passwordMatch, setPasswordMatch] = useState(true);
   const [invalidEmail, setInvalidEmail] = useState(false);
   const [invalidUsername, setInvalidUsername] = useState(false);
+  
 
   const handleUsernameChange = (e) => {
     setInvalidUsername(false);
@@ -200,6 +202,7 @@ export function DrawLogin({ onRegisterClick, handleLoginClick }) {
 
   const formRef = useRef(null); // Za click van forme
   const isFormValid = email.trim() !== '' && password.trim() !== '';
+  const navigate = useNavigate();
 
   useEffect(() => {
     setTimeout(() => {
@@ -250,6 +253,9 @@ export function DrawLogin({ onRegisterClick, handleLoginClick }) {
         localStorage.setItem('NeoWatchExpiryDate', now);
 
         handleLoginClick();
+        if (user?.role === "Moderator") {
+          navigate("/moderatorpage");
+        }
         setIsLoading(false);
         window.location.reload();
       })

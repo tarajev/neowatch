@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Neo4j.Driver;
 using Neo4jClient;
 using Neo4jClient.Cypher;
+using NeoWatch.Dtos;
 using NeoWatch.Model;
 
 namespace NeoWatch.Services;
+
 public class ShowService
 {
     private readonly IDriver _driver;
@@ -292,16 +294,16 @@ public class ShowService
 
         if (genresToRemove.Count() > 0)
         {
-             foreach (var genre in genresToRemove)
-                {
-                    var index = genresToRemove.IndexOf(genre);
-                    var genreKey = $"g_{index}";
-                    query = query
-                        .With("s")
-                        .Match($"(s)-[r_{index}:IN_GENRE]->({genreKey}:Genre {{name: $gnr_{index}}})")
-                        .WithParam($"gnr_{index}", genre.name)
-                        .Delete($"r_{index}");
-                }
+            foreach (var genre in genresToRemove)
+            {
+                var index = genresToRemove.IndexOf(genre);
+                var genreKey = $"g_{index}";
+                query = query
+                    .With("s")
+                    .Match($"(s)-[r_{index}:IN_GENRE]->({genreKey}:Genre {{name: $gnr_{index}}})")
+                    .WithParam($"gnr_{index}", genre.name)
+                    .Delete($"r_{index}");
+            }
         }
 
         if (show.cast != null && show.cast.Count != 0)
@@ -627,6 +629,45 @@ public class ShowService
         }
 
         return shows;
+    }
+
+    public async Task<List<ReviewDto>> GetTvShowReviews(string showTitle, int page, int pageSize)
+    {
+        using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
+        await client.ConnectAsync();
+
+        var query = client.Cypher
+            .Match("(u:User)-[w:WATCHED]->(s:Show)")
+            .Where((Show s) => s.title == showTitle)
+            .Return((u, w) => new
+            {
+                Username = u.As<User>().username,
+                Rating = w.As<Watched>().rating,
+                Comment = w.As<Watched>().comment,
+                Timestamp = w.As<Watched>().timestamp
+            })
+            .OrderByDescending("w.timestamp")
+            .Skip((page - 1) * pageSize)
+            .Limit(pageSize + 1);
+
+        var result = await query.ResultsAsync;
+
+        var reviews = new List<ReviewDto>();
+
+        foreach (var item in result)
+        {
+            var review = new ReviewDto
+            {
+                Username = item.Username,
+                Rating = item.Rating,
+                Comment = item.Comment,
+                Timestamp = item.Timestamp
+            };
+
+            reviews.Add(review);
+        }
+
+        return reviews;
     }
 
     #endregion

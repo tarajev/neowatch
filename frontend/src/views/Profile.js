@@ -210,9 +210,23 @@ export default function DrawProfile() {
       });
   }
 
+  const handleShowMovingLists = (show, toList) => {
+    setShowsToWatch(prev => prev.filter(s => s.title!== show.title));
+    setShowsWatching(prev => prev.filter(s => s.title !== show.title));
+    setShowsWatched(prev => prev.filter(s => s.title !== show.title));
+
+    if (toList === "watchlist") {
+      setShowsToWatch(prev => [...prev, show]);
+    } else if (toList === "watching") {
+      setShowsWatching(prev => [...prev, show]);
+    } else if (toList === "watched") {
+      setShowsWatched(prev => [...prev, show]);
+    }
+  };
+
   return (
     <Page loading={true} timeout={1000} overlayActive={overlayActive} overlayHandler={setOverlayActive}>
-      {showShowStats && <ShowInfo show={showSelected} handleExitClick={() => setShowShowStats(false)} />}
+      {showShowStats && <ShowInfo show={showSelected} handleExitClick={() => setShowShowStats(false)} onMoveShow={handleShowMovingLists} />}
       {showEditProfile && <DrawEditProfile handleExitClick={() => setShowEditProfile(false)} user={userInfo} />}
       {showSearchUsers && <DrawSearchUsers handleExitClick={() => setShowSearchUsers(false)} />}
 

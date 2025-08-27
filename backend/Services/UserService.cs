@@ -73,7 +73,8 @@ public class UserService
             .Match("(u:User)")
             .Where("u.username CONTAINS $search")
             .AndWhere("u.role = $role")
-            .WithParams(new {
+            .WithParams(new
+            {
                 search,
                 role
             })
@@ -100,7 +101,8 @@ public class UserService
             .Match("(u:User)")
             .Where("u.email CONTAINS $search")
             .AndWhere("u.role = $role")
-            .WithParams(new {
+            .WithParams(new
+            {
                 search,
                 role
             })
@@ -688,12 +690,13 @@ public class UserService
             return false;
         }
 
-         var commentText = comment!="" ? comment : null;  
+        var commentText = comment != "" ? comment : null;
+        var timestamp = DateTime.UtcNow;
         // Dodaje ili azurira review
         await client.Cypher
             .Merge("(u:User {username: $username})-[w:WATCHED]->(s:Show {title: $showTitle})")
-            .WithParams(new { username, showTitle, rating, commentText })
-            .Set("w.rating = $rating, w.comment = $commentText")
+            .WithParams(new { username, showTitle, rating, commentText, timestamp })
+            .Set("w.rating = $rating, w.comment = $commentText, w.timestamp=$timestamp")
             .ExecuteWithoutResultsAsync();
 
         Console.WriteLine($"Review added/updated for user {username} on show {showTitle}.");

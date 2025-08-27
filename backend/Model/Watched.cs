@@ -6,4 +6,5 @@ public class Watched
     public User? User { get; set; }
     public required int rating { get; set; }
     public string? comment { get; set; }
+    public DateTime timestamp { get; set; } = DateTime.UtcNow; 
 }

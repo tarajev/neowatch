@@ -1,17 +1,19 @@
-import React, { useState, useRef, useEffect, useContext } from "react";
+import React, { useState, useRef, useEffect, useContext, use } from "react";
 import axios from 'axios'
 import { Button, Exit } from "../components/BasicComponents";
 import { Rating } from '@mui/material';
 import AuthorizationContext from '../context/AuthorizationContext'
 import WriteAReview from "./WriteAReview";
 import DeleteReviewPopUp from "../components/DeleteReviewPopUp";
+import ActorInfo from "./ActorInfo";
 
-export default function ShowInfo({ show, handleExitClick }) {
+export default function ShowInfo({ show, handleExitClick, onMoveShow }) {
     const formRef = useRef(null); // Za click van forme
     const { APIUrl, contextUser } = useContext(AuthorizationContext);
     const [addReview, setAddReview] = useState(false);
     const [deleteReviewPopUp, setDeleteReviewPopUp] = useState(false);
     const [pendingFunction, setPendingFunction] = useState(null);
+    const [showActorInfo, setShowActorInfo] = useState("");
 
     const handleExitAddReview = () => {
         setAddReview(false);
@@ -46,6 +48,25 @@ export default function ShowInfo({ show, handleExitClick }) {
         setAddReview(true);
     };
 
+    const addToWatched = async () => {
+        await axios.put(APIUrl + "User/AddShowWatched", {
+            userName: contextUser.username,
+            tvShowTitle: show.title
+        },
+            {
+                headers: {
+                    Authorization: `Bearer ${contextUser.jwtToken}`
+                },
+
+            }).then(response => {
+                onMoveShow(show, "watched");
+                console.log(response);
+                //if (stars === 0 && review === "")
+                //  handleExitClick(); //samo u slucaju da se review ne salje
+            })
+            .catch(err => console.log(err)); //neki alert nesto?
+    }
+
     const handleAddToWatching = async () => {
         const data = {
             username: contextUser.username,
@@ -56,6 +77,7 @@ export default function ShowInfo({ show, handleExitClick }) {
                 Authorization: `Bearer ${contextUser.jwtToken}`,
             }
         }).then(response => {
+            onMoveShow(show, "watching");
             console.log(response);
             handleExitClick();
         }).catch(err => {
@@ -75,6 +97,7 @@ export default function ShowInfo({ show, handleExitClick }) {
                 Authorization: `Bearer ${contextUser.jwtToken}`,
             }
         }).then(response => {
+            onMoveShow(show, "watchlist");
             console.log(response);
             handleExitClick();
         }).catch(err => {
@@ -83,6 +106,11 @@ export default function ShowInfo({ show, handleExitClick }) {
             setDeleteReviewPopUp(true);
         }); //ovde ako dodje do greške da se ispiše nešto?
     };
+
+    const navigateToReviewsPage = () => {
+        const title = encodeURIComponent(show.title);
+        window.open(`/reviews/${title}`, '_blank')
+    }
 
     /* useEffect(() => { // Za click van forme
          function handleClickOutside(event) {
@@ -97,8 +125,9 @@ export default function ShowInfo({ show, handleExitClick }) {
      }, []);*/
 
     return (
-        <> {addReview && <WriteAReview handleExitClick={handleExitAddReview} tvShowName={show.title}></WriteAReview>}
+        <> {addReview && <WriteAReview handleExitClick={handleExitAddReview} tvShowName={show.title} addToWatched={addToWatched} ></WriteAReview>}
             {deleteReviewPopUp && <DeleteReviewPopUp onCancel={handleExitDeleteReviewPopUp} onDelete={handleDeleteAndMove} ></DeleteReviewPopUp>}
+            {showActorInfo && <ActorInfo actorName={showActorInfo} handleExitClick={() => setShowActorInfo("")}></ActorInfo>}
             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
                 <div className="bg-[#5700a2] rounded-lg shadow-lg p-6 max-w-lg w-fit h-auto relative grid fade-in"> {/* mozda gradient background? */}
                     <Exit
@@ -113,13 +142,13 @@ export default function ShowInfo({ show, handleExitClick }) {
                                 alt={show.title}
                                 className="w-48 h-88 object-cover rounded-lg col-span-3 mb-2"
                             />
-                            {contextUser.role == "User" ? 
-                            <div className="col-span-3 col-start-1 h-fit p-0">
-                                {/*<Button className='drop-shadow-md rounded-md px-2 py-1 w-full mb-2' onClick={handleAddReview}>Review</Button>*/} {/*Ovo će ići kroz watched za sada*/}
-                                <Button className='drop-shadow-md rounded-md px-2 py-1 w-full mb-2' onClick={handleAddToWatchlist}>Add To Watchlist</Button>
-                                <Button className='drop-shadow-md rounded-md px-2 py-1 w-full mb-2' onClick={handleAddToWatching}>Add to Watching</Button>
-                                <Button className='drop-shadow-md rounded-md px-2 py-1 w-full' onClick={handleAddToWatched}>Add to Watched</Button>
-                            </div> : (<></>)}
+                            {contextUser.role == "User" ?
+                                <div className="col-span-3 col-start-1 h-fit p-0">
+                                    {/*<Button className='drop-shadow-md rounded-md px-2 py-1 w-full mb-2' onClick={handleAddReview}>Review</Button>*/} {/*Ovo će ići kroz watched za sada*/}
+                                    <Button className='drop-shadow-md rounded-md px-2 py-1 w-full mb-2' onClick={handleAddToWatchlist}>Add To Watchlist</Button>
+                                    <Button className='drop-shadow-md rounded-md px-2 py-1 w-full mb-2' onClick={handleAddToWatching}>Add to Watching</Button>
+                                    <Button className='drop-shadow-md rounded-md px-2 py-1 w-full' onClick={handleAddToWatched}>Add to Watched</Button>
+                                </div> : (<></>)}
                         </div>
                         <div className="col-span-5 col-start-4 row-start-1">
                             <h2 className="text-white text-3xl font-mono font-semibold col-span-5 text-wrap">{show.title}</h2>
@@ -127,7 +156,7 @@ export default function ShowInfo({ show, handleExitClick }) {
                                 <span className="text-white opacity-60">
                                     {show.year} | {show.numberOfSeasons} {show.numberOfSeasons > 0 ? "Seasons" : "Season"} |
                                 </span>
-                             { show.rating ? <Rating name="half-rating-read" defaultValue={show.rating} precision={0.5} size="small" readOnly /> : <span className="text-white opacity-60"> Not rated </span> }{/*ispraviti na rating serije ili ako ne postoji da to pise?*/}
+                                {show.rating ? (<span className="cursor-pointer mt-2" onClick={() => navigateToReviewsPage()}><Rating name="half-rating-read" defaultValue={show.rating} precision={0.5} size="small" readOnly /> </span>) : <span className="text-white opacity-60"> Not rated </span>}{/*ispraviti na rating serije ili ako ne postoji da to pise?*/}
                             </div>
                             <div className="flex flex-wrap items-center gap-x-6 mb-5">
                                 {show.genres.map((genre) => (
@@ -139,7 +168,7 @@ export default function ShowInfo({ show, handleExitClick }) {
                             <div className="flex flex-wrap gap-x-2 mt-4 h-4 h-fit">
                                 <span className="text-white opacity-80 font-semibold mr-1">Cast:</span>
                                 {show.cast.map((a, index) => (
-                                    <span key={index} className="group text-white opacity-80 inline-block max-w-xs cursor-pointer relative">
+                                    <span key={index} onClick={() => setShowActorInfo(a.actor.name)} className="group text-white opacity-80 inline-block max-w-xs cursor-pointer relative">
                                         {a.actor.name}{index < show.cast.length - 1 && ", "}
                                         <div className="absolute inline-block inset-x-0 bottom-full mb-1 w-max fade-in !bg-gray-900 !bg-opacity-100 !shadow-sm text-white text-xs p-2 rounded group-hover:block hidden duration-300 z-[555]" >
                                             {a.role}
