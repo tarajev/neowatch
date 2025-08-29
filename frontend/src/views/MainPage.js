@@ -48,7 +48,9 @@ export default function DrawMainPage() {
           <div className=' col-span-3 grid grid-cols-2 w-full mb-2 '>
             <Tabs preventTab={overlayActive} DrawTab1={() => <DrawSearchTvShows />} DrawTab2={contextUser.role == "User" ? () => <DrawRecommendationsPage /> : () => (
               <p className="flex items-center justify-center h-full p-4 text-lg font-semibold text-gray-500">
-                Login to access all the features
+                {contextUser.role === "Guest"
+                  ? "Login to access all the features"
+                  : "Log in with your private account to access all the features"}
               </p>
             )}>
             </Tabs>
@@ -58,7 +60,7 @@ export default function DrawMainPage() {
               <div className="w-full h-full bg-[#5700a2] overflow-x-clip p-4 flex flex-col items-center rounded-tr-xl rounded-br-xl">
 
                 <div className="w-32 h-32 overflow-hidden rounded-full border-2 border-white">
-                  <img src={contextUser.role == "User" ? `http://localhost:5227${contextUser.picture} ` : imagePlaceholder} alt="Profile" className="w-full h-full object-cover" /> {/*podaci se izvlače iz contextUser-a*/}
+                  <img src={contextUser.role === "User" && contextUser.picture ? `http://localhost:5227${contextUser.picture}`: imagePlaceholder} alt="Profile" className="w-full h-full object-cover" /> {/*podaci se izvlače iz contextUser-a*/}
                 </div>
                 <h2 className="mt-4 text-white text-lg font-semibold">{contextUser.username}</h2>
                 <div class="lg:flex lg:space-x-8 justify-center p-4">
@@ -90,8 +92,10 @@ export default function DrawMainPage() {
               </div>
             </div>
             {contextUser.role !== "User" && (
-              <div className="z-999 absolute inset-0 flex items-center text-center justify-center text-md font-semibold text-gray-100  backdrop-blur-none rounded-lg ">
-                Login to access all the features
+              <div className="z-999 absolute inset-0 flex items-center text-center justify-center text-md font-semibold text-gray-100 backdrop-blur-none rounded-lg">
+                {contextUser.role === "Guest"
+                  ? "Login to access all the features"
+                  : "Log in with your private account to access all the features"}
               </div>
             )}
           </div>

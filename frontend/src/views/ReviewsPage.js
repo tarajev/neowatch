@@ -10,7 +10,7 @@ export default function ReviewPage() {
     const { APIUrl, contextUser } = useContext(AuthorizationContext);
     const [reviews, setReviews] = useState([]);
     const [page, setPage] = useState(1);
-    const pageSize = 1;
+    const pageSize = 20;
     const [moreAvailable, setMoreAvailable] = useState();
 
     const { showTitle } = useParams();

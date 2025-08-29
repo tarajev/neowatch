@@ -1,4 +1,3 @@
-import LandingPage from "./views/LandingPage"
 import MainPage from "./views/MainPage"
 import Profile from "./views/Profile"
 import ModeratorPage from './views/ModeratorPage'
@@ -36,7 +35,6 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<MainPage />} />
-            <Route path="/landingpage" element={<LandingPage />} />
             <Route path="/profile/:username/:tab" element={<Profile />} />
             <Route path="/moderatorpage" element={<ModeratorPage />} />
             <Route path="/reviews/:showTitle" element={<ReviewPage />} />

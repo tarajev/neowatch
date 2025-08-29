@@ -129,7 +129,7 @@ export function DrawRegistration({ onLoginClick, exitRegistration, handleLoginCl
           />
           <form className="mt-4" onSubmit={handleRegisterSubmit}>
             <FormInput
-              text="Korisničko ime"
+              text="Username"
               required
               value={userName}
               onChange={handleUsernameChange}
@@ -137,45 +137,45 @@ export function DrawRegistration({ onLoginClick, exitRegistration, handleLoginCl
               alertText={invalidUsername && "Username already exists"}
             />
             <FormInput
-              text="EMail"
+              text="Email"
               type="email"
               required
               value={email}
               onBlur={handleEmailBlur}
               onChange={handleEmailChange}
               alertCond={(!isEmailValid && emailTouched) || invalidEmail}
-              alertText={invalidEmail ? "Email je već u upotrebi!" : "Neispravan email format!"}
+              alertText={invalidEmail ? "Email already in use!" : "Invalid email format!"}
             />
             <Password
-              text="Šifra"
+              text="Password"
               required
               visibility
               value={password}
               onChange={handlePasswordChange}
             />
             <Password
-              text="Ponovite šifru"
+              text="Confirm password"
               required
               value={confirmPassword}
               onChange={handleConfirmPasswordChange}
               onBlur={handlePasswordBlur}
               alertCond={!passwordMatch && passwordTouched}
-              alertText="Šifre se ne podudaraju!"
+              alertText="Passwords don't match!"
             />
             <FormButton
               loading={isLoading}
-              text="Registrujte se"
+              text="Register"
               disabled={disableSubmit()}
             />
             <div className="flex items-center justify-between mt-3">
               <span className="block text-sm text-gray-400">
                 <span className="text-sm text-red-600">*</span>
-                Ova polja su obavezna.
+                Mandatory fields
               </span>
               <span className="text-sm text-gray-400">
-                Imate nalog?
+                 Already have an account?
                 <Link href="#" className="text-sm ml-1" onClick={onLoginClick}>
-                  Ulogujte se.
+                  Log in.
                 </Link>
               </span>
             </div>
@@ -313,40 +313,38 @@ export function DrawLogin({ onRegisterClick, handleLoginClick }) {
 
           <form onSubmit={handleLoginSubmit} className="mt-4">
             <FormInput
-              text="EMail"
+              text="Email"
               type="email"
               value={email}
               alertCond={!isEmailValid}
-              alertText="Neispravan email format!"
+              alertText="Invalid Email format!"
               onChange={handleEmailChange}
               onBlur={handleEmailBlur}
             />
 
             <Password
-              text="Šifra"
+              text="Password"
               visibility
               value={password}
               onChange={handlePasswordChange}
             />
 
             <FormButton
-              text="Ulogujte se"
+              text="Login"
               loading={isLoading}
               disabled={!isFormValid}
             />
 
             <div className="flex justify-end mt-3">
               <span className="block text-sm text-gray-400">
-                Nemate nalog?
+                You don't have an account?
               </span>
               <Link href="#" className="text-sm ml-1" onClick={onRegisterClick}>
-                Registrujte se.
+                Register.
               </Link>
             </div>
             <div className="flex justify-center mt-3 color-primary">
               {loginError.length > 0 && <span className="text-red-500"> {loginError} </span>}
-              {forgottenInfoSent && !forgottenInfoError && <span className='color-primary'>Uspešno poslata šifra na mail-u!</span>}
-              {forgottenInfoError && <span className='text-red-500'>{forgottenInfoError !== 400 ? "Unesite mail u odgovarajućem polju." : "Korisnik nije pronadjen."}</span>}
             </div>
           </form>
         </div>

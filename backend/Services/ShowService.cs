@@ -128,7 +128,6 @@ public class ShowService
 
         if (showFound.Any()) return null;
 
-        // merge proveri da li postoji pre kreiranja
         var query = client.Cypher
             .Merge("(s:Show {title: $title})")
             .WithParam("title", show.title) //ovo ce proci iako serija postoji samo ce se dodati zanr prakticno radice kao apdejt onda mozemo to da promenimo ako zelis (promenila)
@@ -138,29 +137,28 @@ public class ShowService
             .WithParam("year", show.year)
             .WithParam("num", show.numberOfSeasons);  //ovde ne dodajem rating jer rating u startu nema, tehnicki 
 
-        foreach (var genre in show.genres)  //ako moze nekako pametnije (da se za sve zanrove izvrsi) be my guest
+        if (show.genres != null && show.genres.Count > 0)
         {
-            var index = show.genres.IndexOf(genre); //i za ovo, ne moze da se koristi ime jer ima razmak, vecina spec karaktera ne dolazi u obzir a ne zelim da transformisem string yippe sto bi kosta rekao
-            var genreKey = $"g{index}"; //na frontendu osigurati da su uneseni razliciti zanrovi pls 
             query = query
-                .Merge($"({genreKey}:Genre {{name: $gn_{index}}})")
-                .WithParam($"gn_{index}", genre.name)
-                .Merge($"(s)-[:IN_GENRE]->({genreKey})");
+                .WithParam("genres", show.genres.Select(g => g.name).ToList())
+                .With("s, $genres AS genres")
+                .Unwind("$genres", "genreName")
+                .With("s, genreName")
+                .Merge("(g:Genre {name: genreName})")
+                .Merge("(s)-[:IN_GENRE]->(g)");
         }
+
         if (show.cast != null && show.cast.Count > 0)
         {
-            foreach (var castMember in show.cast)
-            {
-                var index = show.cast.IndexOf(castMember);
-                var actorKey = $"a{index}";
-                var rKey = $"r{index}";
-                query = query
-                    .Merge($"({actorKey}:Actor {{name: $an_{index}}})")
-                    .WithParam($"an_{index}", castMember.actor!.name)
-                    .Merge($"(s)<-[{rKey}:ACTED_IN]-({actorKey})") //default relationship je left to right
-                    .Set($"{rKey}.role = $role_{index}")
-                    .WithParam($"role_{index}", castMember.role);
-            }
+            var castList = show.cast.Select(c => new { Actor = c.actor!.name, Role = c.role }).ToList();
+            query = query
+                .WithParam("cast", castList)
+                .With("s, $cast AS cast")
+                .Unwind("$cast", "castMember")
+                .With("s, castMember")
+                .Merge("(a:Actor {name: castMember.Actor})")
+                .Merge("(s)<-[r:ACTED_IN]-(a)")
+                .Set("r.role = castMember.Role");
         }
 
         var result = await query.Return((s) => s.As<Show>()).ResultsAsync;
@@ -239,6 +237,9 @@ public class ShowService
         using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
         await client.ConnectAsync();
 
+        var genresList = show.genres?.Select(g => g.name).ToList() ?? new List<string>();
+        var castList = show.cast?.Select(c => new CastMemberDto { Actor = c.actor!.name, Role = c.role }).ToList() ?? new List<CastMemberDto>();
+
         var query = client.Cypher
             .Match("(s:Show {title: $title})")
             .WithParam("title", oldTitle);
@@ -261,85 +262,32 @@ public class ShowService
         if (show.numberOfSeasons > 0)
             query = query.Set("s.numberOfSeasons = $numSeasons").WithParam("numSeasons", show.numberOfSeasons);
 
-        var existingActorsQuery = client.Cypher
-               .Match("(s:Show {title: $title})<-[r:ACTED_IN]-(a:Actor)")
-               .WithParam("title", show.title)
-               .With("COLLECT(DISTINCT { actor: { name: a.name }, role: r.role }) AS acted")
-               .Return(acted => acted.As<List<ActedIn>>());
 
-        var existingActors = (await existingActorsQuery.ResultsAsync).FirstOrDefault();
-
-        if (show.genres != null && show.genres.Any()) //treba da uradim za izbacivanje zanrova!! ?
+        if (show.genres != null && show.genres.Count != 0) //obavlja i brisanje starih veza i dodavanje novih
         {
-            foreach (var genre in show.genres)
-            {
-                var index = show.genres.IndexOf(genre);
-                var genreKey = $"g{index}";
-                query = query
-                    .Merge($"({genreKey}:Genre {{name: $gn_{index}}})")
-                    .WithParam($"gn_{index}", genre.name)
-                    .Merge($"(s)-[:IN_GENRE]->({genreKey})");
-            }
+            query = query
+            .WithParam("genres", genresList)
+            .With("s, $genres AS genres")
+            .Unwind("genres", "genreName")
+            .Merge("(g:Genre {name: genreName})")
+            .Merge("(s)-[:IN_GENRE]->(g)")
+            .With("s, genres")
+            .Match("(s)-[r:IN_GENRE]->(g:Genre)")
+            .Where("NOT g.name IN genres")
+            .Delete("r");
         }
 
-        var existingGenresQuery = client.Cypher
-                .Match("(s:Show {title: $title})-[:IN_GENRE]->(g:Genre)")
-                .WithParam("title", show.title)
-                .With("COLLECT(DISTINCT g) AS genres")
-                .Return(genres => genres.As<List<Genre>>());
-
-        var existingGenres = (await existingGenresQuery.ResultsAsync).FirstOrDefault();
-
-        var genresToRemove = existingGenres.Where(eg => !show.genres.Any(sg => sg.name == eg.name)).ToList();
-
-        if (genresToRemove.Count() > 0)
+        if (show.cast != null && show.cast.Count != 0) //obavlja i brisanje starih veza  (ukoliko se neko od glumaca ukloni) i dodavanje novih
         {
-            foreach (var genre in genresToRemove)
-            {
-                var index = genresToRemove.IndexOf(genre);
-                var genreKey = $"g_{index}";
-                query = query
-                    .With("s")
-                    .Match($"(s)-[r_{index}:IN_GENRE]->({genreKey}:Genre {{name: $gnr_{index}}})")
-                    .WithParam($"gnr_{index}", genre.name)
-                    .Delete($"r_{index}");
-            }
-        }
-
-        if (show.cast != null && show.cast.Count != 0)
-        {
-            var castActorNames = show.cast.Select(c => c.actor.name).ToList();
-            var actorsToRemove = existingActors
-                .Where(ea => ea.actor != null && !castActorNames.Contains(ea.actor.name))
-                .ToList();
-
-            if (actorsToRemove.Count() > 0)
-            {
-                foreach (var actorToRemove in actorsToRemove)
-                {
-                    var index = actorsToRemove.IndexOf(actorToRemove);
-                    var actorKey = $"a{index}";
-                    query = query
-                        .With("s")
-                        .Match($"(s:Show {{title: $title1}})<-[r_{index}:ACTED_IN]-({actorKey}:Actor {{name: $a_{index}}})")
-                        .WithParam($"a_{index}", actorToRemove.actor.name)
-                        .WithParam("title1", oldTitle)
-                        .Delete($"r_{index}");
-                }
-            }
-            foreach (var actor in show.cast)
-            {
-                var index = show.cast.IndexOf(actor);
-                var actorKey = $"actor{index}";
-                var rKey = $"r{index}";
-                query = query
-                    .Merge($"({actorKey}:Actor {{name: $an_{index}}})") //mora odvojeno da ne bi kreiralo glumca ponovo
-                    .WithParam($"an_{index}", actor.actor.name)
-                    .Merge($"(s)<-[{rKey}:ACTED_IN]-({actorKey})")
-                    .OnCreate()
-                    .Set($"{rKey}.role = $rl_{index}")
-                    .WithParam($"rl_{index}", actor.role);
-            }
+            query = query.WithParam("cast", castList)
+            .With("s, $cast AS cast")
+            .Unwind("cast", "castMember")
+            .Merge("(a:Actor {name: castMember.Actor})")
+            .Merge("(s)<-[r:ACTED_IN]-(a)").Set("r.role = castMember.Role")
+            .With("s, cast")
+            .Match("(s)<-[r:ACTED_IN]-(a:Actor)")
+            .Where("NOT a.name IN [c IN cast | c.Actor]")
+            .Delete("r");
         }
 
         var result = await query.Return(s => s.As<Show>()).ResultsAsync;
@@ -443,8 +391,6 @@ public class ShowService
              .Return((recommended) => recommended.As<Show>());
 
         var result = await query.ResultsAsync;
-
-        Console.WriteLine("result: " + result.First().title);
 
         return result.ToList();
     }
