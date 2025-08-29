@@ -23,6 +23,7 @@ export default function DrawAddOrEditShow({ handleExitClick, handleShowCount, ed
   const [confirmDeletion, setConfirmDeletion] = useState(false);
   const [changedPicture, setChangedPicture] = useState("");
   const [oldTitle, setOldTitle] = useState(editShow ? editShow.title : '');
+  const [showAlreadyExisting, setShowAlreadyExisting] = useState(false);
 
   const [inputGenre, setInputGenre] = useState('');
   const [inputCastOrRole, setInputCastOrRole] = useState('');
@@ -155,6 +156,7 @@ export default function DrawAddOrEditShow({ handleExitClick, handleShowCount, ed
         setExitForm(true);
       })
       .catch(error => {
+        setShowAlreadyExisting(true);
         console.log(error);
       })
 
@@ -294,7 +296,7 @@ export default function DrawAddOrEditShow({ handleExitClick, handleShowCount, ed
                 text="Title:"
                 required
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => { setTitle(e.target.value); setShowAlreadyExisting(false) }}
               />
               <div className='grid grid-cols-2 gap-4'>
                 <FormInput
@@ -371,6 +373,7 @@ export default function DrawAddOrEditShow({ handleExitClick, handleShowCount, ed
               )}
             </div>
           </div>
+          {showAlreadyExisting && <p className='text-red-500 mx-auto'>This show already exists.</p>}
         </div>
       </div>
     </div>

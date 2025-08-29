@@ -17,13 +17,9 @@ export default function DrawMainPage() {
 
   useEffect(() => {
     console.log(contextUser.role);
-    if (contextUser.role == "User")
+    if (contextUser.role === "User")
       getUserStats(contextUser.username);
   }, []);
-
-  useEffect(() => {
-    console.log("Updated userStats:", userStats);
-  }, [userStats]);
 
   const getUserStats = async (username) => {
     var route = `User/GetUserStats/${username}`;
@@ -63,18 +59,18 @@ export default function DrawMainPage() {
                   <img src={contextUser.role === "User" && contextUser.picture ? `http://localhost:5227${contextUser.picture}`: imagePlaceholder} alt="Profile" className="w-full h-full object-cover" /> {/*podaci se izvlače iz contextUser-a*/}
                 </div>
                 <h2 className="mt-4 text-white text-lg font-semibold">{contextUser.username}</h2>
-                <div class="lg:flex lg:space-x-8 justify-center p-4">
-                  <div class="text-center">
-                    <p class="text-2xl font-bold text-zinc-50">{userStats ? userStats.watchedCount : "0"}</p>
-                    <p class="text-sm text-zinc-100/50">Series Watched</p>
+                <div className="lg:flex lg:space-x-8 justify-center p-4">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-zinc-50">{userStats ? userStats.watchedCount : "0"}</p>
+                    <p className="text-sm text-zinc-100/50">Series Watched</p>
                   </div>
-                  <div class="text-center">
-                    <p class="text-2xl font-bold text-zinc-50">{userStats ? userStats.watchingCount : "0"}</p>
-                    <p class="text-sm text-zinc-100/50">Currently Watching</p>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-zinc-50">{userStats ? userStats.watchingCount : "0"}</p>
+                    <p className="text-sm text-zinc-100/50">Currently Watching</p>
                   </div>
-                  <div class="text-center">
-                    <p class="text-2xl font-bold text-zinc-50">{userStats ? userStats.followersCount : "0"}</p>
-                    <p class="text-sm text-zinc-100/50">Followers</p>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-zinc-50">{userStats ? userStats.followersCount : "0"}</p>
+                    <p className="text-sm text-zinc-100/50">Followers</p>
                   </div>
                 </div>
                 {/* Linkovi */}

@@ -38,7 +38,6 @@ public class UserService
         Console.WriteLine($"Found: {result?.FirstOrDefault()?.username}");
         User? user = result?.FirstOrDefault();
 
-        //treba da se hashuje sifra 
         return user;
     }
 
@@ -69,13 +68,15 @@ public class UserService
         using var client = new GraphClient(new Uri("http://localhost:7474"), "neo4j", "8vR@JaRJU-SL7Hr");
         await client.ConnectAsync();
 
+        var loweredSearch = (search ?? string.Empty).ToLowerInvariant(); // case-insensitive fix
+
         var query = client.Cypher
             .Match("(u:User)")
-            .Where("u.username CONTAINS $search")
+            .Where("toLower(u.username) CONTAINS $search")
             .AndWhere("u.role = $role")
             .WithParams(new
             {
-                search,
+                search = loweredSearch,
                 role
             })
             .Return(u => u.As<User>());
@@ -88,7 +89,6 @@ public class UserService
             return null;
         }
 
-        Console.WriteLine($"Found {result.Count()} users containing '{search}' in their username.");
         return result.ToList();
     }
 
