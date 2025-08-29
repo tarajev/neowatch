@@ -162,7 +162,6 @@ public class ShowService
         }
 
         var result = await query.Return((s) => s.As<Show>()).ResultsAsync;
-        Console.WriteLine($"NASLOV SERIJE JE:::::::: {result.First().title}");
 
         return result.First();
     }
@@ -475,8 +474,6 @@ public class ShowService
         var lastName = char.ToUpper(name.Last()[0]) + name.Last()[1..].ToLower();
 
         var fullName = firstName + " " + lastName;
-
-        Console.WriteLine(fullName);
 
         var query = client.Cypher
             .Match("(s:Show)<-[:ACTED_IN]-(a:Actor {name: $actorName})")

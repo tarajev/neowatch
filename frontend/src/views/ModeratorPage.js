@@ -32,8 +32,6 @@ export default function DrawAdministrativePanel() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [added, setAdded] = useState(false);
 
-  // Paginacija bi trebalo bolje da se uradi u backend-u, da uzima samo one koje je potrebno????
-
   // Pagination
   const itemsPerPage = 20;
   const startIndex = (page - 1) * itemsPerPage;
@@ -44,10 +42,6 @@ export default function DrawAdministrativePanel() {
     getUserCounts();
     getShowCount();
   }, [])
-
-  useEffect(() => {
-    console.log(selectedUser);
-  }, [selectedUser])
 
   useEffect(() => {
     setItems([]);
@@ -67,7 +61,6 @@ export default function DrawAdministrativePanel() {
       }
     })
       .then(response => {
-        console.log(response.data);
         setItems(response.data);
       })
       .catch(error => {
@@ -84,12 +77,10 @@ export default function DrawAdministrativePanel() {
       }
     })
       .then(result => {
-        console.log(result);
-        console.log(result.data);
         setUserCounts(result.data);
       })
       .catch(error => {
-        console.log(error);
+        console.error(error);
       })
   }
 
@@ -104,7 +95,7 @@ export default function DrawAdministrativePanel() {
         setShowCount(result.data);
       })
       .catch(error => {
-        console.log(error);
+        console.error(error);
       })
   }
 
@@ -128,7 +119,6 @@ export default function DrawAdministrativePanel() {
     }
     else { 
       setShowToEdit(item);
-      console.log(item);
       setShowAddAccOrShow(true);
     }
 

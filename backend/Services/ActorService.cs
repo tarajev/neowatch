@@ -5,6 +5,7 @@ using Neo4jClient.Cypher;
 using NeoWatch.Model;
 
 namespace NeoWatch.Services;
+
 public class ActorService
 {
     public async Task<Actor?> GetActorByNameAsync(string name)
@@ -75,7 +76,7 @@ public class ActorService
         await client.ConnectAsync();
 
         var query = client.Cypher
-            .Match("(a:Actpr {name: $name})")
+            .Match("(a:Actor {name: $name})")
             .WithParam("name", actor.name);
 
         if (!string.IsNullOrWhiteSpace(actor.bio))
@@ -138,7 +139,7 @@ public class ActorService
             .WithParam("role", role)
             .Return((r) => r.As<ActedIn>());//morala sam da kreiram klasu za ovo videti da li moze kako drugacije
 
-       var relationship = await query.ResultsAsync;
+        var relationship = await query.ResultsAsync;
 
         return relationship.First();
     }

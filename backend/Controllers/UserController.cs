@@ -16,7 +16,6 @@ public class UserController : ControllerBase
 
     #region User CRUD
 
-    [AllowAnonymous]
     [HttpGet("GetAllUsers")]
     public async Task<IActionResult> GetAllUsers()
     {
@@ -24,7 +23,6 @@ public class UserController : ControllerBase
         return Ok(users);
     }
 
-    [AllowAnonymous]
     [HttpGet("GetUserByUsername/{username}")]
     public async Task<IActionResult> GetUserByUsername(string username)
     {
@@ -39,7 +37,6 @@ public class UserController : ControllerBase
         return Ok(count); 
     }
 
-    [AllowAnonymous]
     [HttpGet("FindUsers/{search}/{role}")]
     public async Task<IActionResult> FindUsers(string search, string role)
     {

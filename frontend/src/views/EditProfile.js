@@ -39,12 +39,7 @@ export default function DrawEditProfile({ handleExitClick, user }) {
         "Content-Type": "application/json"
       }
     })
-      .then(result => {
-        console.log(result.data)
-      })
-      .catch(error => {
-        console.log(error);
-      })
+      .catch(error => console.error(error))
 
     if (typeof changedPicture !== 'string' || (typeof changedPicture === 'string' && user.picture.trim() !== changedPicture.trim() && changedPicture != "")) {
         const formData = new FormData();
@@ -57,12 +52,7 @@ export default function DrawEditProfile({ handleExitClick, user }) {
             'Content-Type': 'multipart/form-data'
           }
         })
-          .then(result => {
-            console.log(result.data)
-          })
-          .catch(error => {
-            console.log(error)
-          })
+          .catch(error => console.error(error))
     }
 
     setIsLoading(false);

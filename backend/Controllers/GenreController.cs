@@ -22,5 +22,4 @@ public class GenreController : ControllerBase
         var genres = await _genreService.GetAllGenres();
         return Ok(genres);
     }
-
 }

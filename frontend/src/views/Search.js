@@ -141,7 +141,6 @@ export default function DrawSearchTvShows() {
             onChange={(e) => { setSearch(e.target.value) }}
             onKeyDown={handleKeyDown}
           />
-          {/*{(currentSeries && filteredShows==false) && ((currentSeries ? (currentSeries.length == 0 ? true : false) : false) || notFound) && <p className='p-2 text-gray-500 text-sm bg-transparent'>No Series found that match the criteria.</p>}*/}
         </div>
         <div className='col-span-8 mb-2'>
           {genreOptions && genreOptions.length > 0 ? (
@@ -228,7 +227,6 @@ export default function DrawSearchTvShows() {
           <span className="text-white">&rarr;</span> {/* Strelica desno */}
         </button>
       </div>
-
     </div>
   );
 }

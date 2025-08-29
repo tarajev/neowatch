@@ -757,8 +757,6 @@ public class UserService
         var result = await query.ResultsAsync;
         var data = result.FirstOrDefault();
 
-        Console.WriteLine("DATA:" + data);
-
         if (data != null)
             return ((int)data.WatchedCount, (int)data.WatchingCount, (int)data.PlanToWatchCount, (int)data.FollowersCount);
 

@@ -10,7 +10,6 @@ public class ShowController : ControllerBase
 {
     private readonly ShowService _showService;
 
-    // Konstruktor koji prima konkretnu instancu ShowService
     public ShowController(ShowService ShowService)
     {
         _showService = ShowService;
@@ -87,7 +86,6 @@ public class ShowController : ControllerBase
 
         return Ok(new { fileUrl });
     }
-
 
     [HttpPut("UpdateAShow/{oldTitle}")]
     public async Task<IActionResult> UpdateAShow([FromBody] Show show, string oldTitle)

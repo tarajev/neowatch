@@ -42,7 +42,6 @@ export default function DrawProfile() {
   }, [username]);
 
   const displayShowInfo = (show) => {
-    console.log("serija" + show);
     getAdditionalShowInfo(show);
   }
 
@@ -59,7 +58,7 @@ export default function DrawProfile() {
         setShowShowStats(true);
       })
       .catch(error => {
-        console.log(error);
+        console.error(error);
       })
   }
 
@@ -74,7 +73,7 @@ export default function DrawProfile() {
         setUserInfo(result.data);
       })
       .catch(error => {
-        console.log(error);
+        console.error(error);
         if (error.response) {
           switch (error.response.status) {
             case 404:
@@ -96,7 +95,7 @@ export default function DrawProfile() {
         setUserStats(result.data)
       })
       .catch(error => {
-        console.log(error);
+        console.error(error);
       })
   }
 
@@ -173,7 +172,7 @@ export default function DrawProfile() {
         setUserIsFollowed(true);
       })
       .catch(error => {
-        console.log(error);
+        console.error(error);
       });
   }
 
@@ -190,7 +189,7 @@ export default function DrawProfile() {
         setUserIsFollowed(false);
       })
       .catch(error => {
-        console.log(error);
+        console.error(error);
       });
   }
 
@@ -206,7 +205,7 @@ export default function DrawProfile() {
         setUserIsFollowed(result.data);
       })
       .catch(error => {
-        console.log("Error checking if user is following:", error);
+        console.error("Error checking if user is following:", error);
       });
   }
 
@@ -277,7 +276,7 @@ export default function DrawProfile() {
         <div className='col-span-5 sm:col-span-3'>
           <div className='bg-indigo-950 border border-violet-900 rounded-xl ml-1 px-3 py-1 h-fit'>
             <p className='section-title !text-2xl !mb-0 justify-self-center'>{userStats?.followersCount} followers</p>
-            {contextUser.username !== username && contextUser.role != "Guest" ? (
+            {contextUser.username !== username && contextUser.role === "User" ? (
               userIsFollowed === true ? (
                 <div className="mt-2 justify-self-center">
                   <Link onClick={unfollowUser}>Unfollow this user</Link>
@@ -306,7 +305,6 @@ export default function DrawProfile() {
         <CollapsiblePanel title="Currently Watching:" open={openList === "watching" ? true : false}>
           <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-8 lg:grid-cols-6 gap-4 p-2'>
             {showsWatching.length == 0 && <p className='col-span-2 md:col-span-4 lg:col-span-2'>This user has no shows currently watching.</p>}
-            {console.log("broj serija:" + showsWatching.length)}
             {showsWatching.map((show, index) => (
               <SeriesSlot key={`watching-${index}`} title={show.title} image={`http://localhost:5227${show.imageUrl}`} func={() => displayShowInfo(show)} />
             ))}

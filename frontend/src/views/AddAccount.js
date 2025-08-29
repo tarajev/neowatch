@@ -67,7 +67,7 @@ export default function DrawAddProfile({ handleExitClick }) {
           setSuccess(true);
           setExitForm(true);
         })
-        .catch(err => console.log(err)); //ovde ako dodje do greške da se ispiše da se pokuša ponovo ili tako nesto
+        .catch(err => console.error(err)); //ovde ako dodje do greške da se ispiše da se pokuša ponovo ili tako nesto
       setIsLoading(false);
     }
   }

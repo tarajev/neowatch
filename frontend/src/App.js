@@ -7,9 +7,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import React, { useState } from 'react';
 import DrawNotFound from "./views/NotFound";
 import ReviewPage from "./views/ReviewsPage";
+import Authorization from "./components/Authorization";
 
 function App() {
-
   const [contextUser, contextSetUser] = useState({
     username: "",
     role: "Guest",
@@ -24,7 +24,7 @@ function App() {
 
   var storageUser = localStorage.getItem('NeowatchUser');
 
-  if (contextUser.role == "Guest"  && storageUser) { //ako se osvezi stranica
+  if (contextUser.role == "Guest" && storageUser) { //ako se osvezi stranica
     var storageUserJson = JSON.parse(storageUser);
     contextSetUser(storageUserJson);
   }
@@ -35,14 +35,21 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<MainPage />} />
-            <Route path="/profile/:username/:tab" element={<Profile />} />
-            <Route path="/moderatorpage" element={<ModeratorPage />} />
+
+            <Route element={<Authorization requiredPermissions={["VIEW_USER"]} />}>
+              <Route path="/profile/:username/:tab" element={<Profile />} />
+            </Route>
+
+            <Route element={<Authorization requiredPermissions={["VIEW_MODERATOR"]} />}>
+              <Route path="/moderatorpage" element={<ModeratorPage />} />
+            </Route>
+
             <Route path="/reviews/:showTitle" element={<ReviewPage />} />
             <Route path="*" element={<DrawNotFound />} />
           </Routes>
         </BrowserRouter>
       </AuthorizationContext.Provider>
-    </div>
+    </div >
   );
 }
 

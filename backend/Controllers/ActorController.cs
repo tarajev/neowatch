@@ -30,6 +30,16 @@ public class ActorController : ControllerBase
         return Ok("Uspešno kreiran glumac/glumica.");
     }
 
+    [HttpPut("UpdateActor")]
+    public async Task<IActionResult> UpdateActor([FromBody] Actor updatedActor)
+    {
+        var result = await _actorService.UpdateActorAsync(updatedActor);
+        if (result == null)
+            return BadRequest("Došlo je do greške prilikom ažuriranja glumca.");
+
+        return Ok("Uspešno ažuriran glumac.");
+    }
+
     [HttpDelete("DeleteAnActor/{name}")]
     public async Task<IActionResult> DeleteAnActor(string name)
     {
@@ -47,5 +57,4 @@ public class ActorController : ControllerBase
             return BadRequest("Došlo je do greške");
         return Ok($"Uspešno povezani serija: {showTitle} i {actorName}, uloga: {r.role}");
     }
-
 }

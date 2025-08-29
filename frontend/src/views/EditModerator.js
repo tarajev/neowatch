@@ -35,11 +35,8 @@ export default function DrawEditModerator({ handleExitClick, user }) {
         "Content-Type": "application/json"
       }
     })
-      .then(result => {
-        console.log(result.data)
-      })
       .catch(error => {
-        console.log(error);
+        console.error(error);
       })
 
     if (typeof changedPicture !== 'string' || (typeof changedPicture === 'string' && user.picture?.trim() !== changedPicture.trim())) {
@@ -54,12 +51,7 @@ export default function DrawEditModerator({ handleExitClick, user }) {
             'Content-Type': 'multipart/form-data'
           }
         })
-          .then(result => {
-            console.log(result.data)
-          })
-          .catch(error => {
-            console.log(error)
-          })
+          .catch(error => console.error(error))
       }
     }
 

@@ -16,7 +16,6 @@ export default function DrawMainPage() {
   const [userStats, setUserStats] = useState(null);
 
   useEffect(() => {
-    console.log(contextUser.role);
     if (contextUser.role === "User")
       getUserStats(contextUser.username);
   }, []);
@@ -33,7 +32,7 @@ export default function DrawMainPage() {
         localStorage.setItem("userStats", JSON.stringify(result.data));
       })
       .catch(error => {
-        console.log(error);
+        console.error(error);
       })
   }
 

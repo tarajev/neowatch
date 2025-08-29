@@ -37,12 +37,10 @@ export default function DrawRecommendationsPage() {
 
   const handleShowClick = (show) => {
     if (show.cast && show.genres) {
-      console.log("POSTOJI");
       setSelectedShow(show);
       return;
     }
     getAdditionalInfo(show);
-    console.log("NE POSTOJI");
   };
 
   const handleExitClick = () => {
@@ -64,10 +62,9 @@ export default function DrawRecommendationsPage() {
     })
       .then(result => {
         setYetToWatch(result.data)
-        console.log("test" + result.data.show.imageUrl);
       })
       .catch(error => {
-        console.log(error);
+        console.error(error);
       })
   }
 
@@ -82,7 +79,7 @@ export default function DrawRecommendationsPage() {
         setRecommendation(result.data)
       })
       .catch(error => {
-        console.log(error);
+        console.error(error);
       })
   }
 
@@ -97,7 +94,7 @@ export default function DrawRecommendationsPage() {
         setWhatFriendsAreWatching(result.data)
       })
       .catch(error => {
-        console.log(error);
+        console.error(error);
       })
   }
 
@@ -130,7 +127,7 @@ export default function DrawRecommendationsPage() {
           ));
       })
       .catch(error => {
-        console.log(error);
+        console.error(error);
       })
   }
 

@@ -89,10 +89,9 @@ export function DrawRegistration({ onLoginClick, exitRegistration, handleLoginCl
         role: "User"
       })
         .then(response => {
-          console.log(response);
           exitRegistration();
         })
-        .catch(err => console.log(err)); //ovde ako dodje do greške da se ispiše da se pokuša ponovo ili tako nesto
+        .catch(err => console.error(err)); //ovde ako dodje do greške da se ispiše da se pokuša ponovo ili tako nesto
       setIsLoading(false);
     }
   }
@@ -260,7 +259,7 @@ export function DrawLogin({ onRegisterClick, handleLoginClick }) {
         window.location.reload();
       })
       .catch(error => {
-        console.log(error);
+        console.error(error);
         setLoginError("Pogrešan E-Mail ili šifra!");
       })
     setIsLoading(false);

@@ -157,7 +157,7 @@ export default function DrawAddOrEditShow({ handleExitClick, handleShowCount, ed
       })
       .catch(error => {
         setShowAlreadyExisting(true);
-        console.log(error);
+        console.error(error);
       })
 
     if (typeof changedPicture !== 'string' || (typeof changedPicture === 'string' && picture.trim() !== changedPicture.trim() && changedPicture != "")) {
@@ -171,11 +171,8 @@ export default function DrawAddOrEditShow({ handleExitClick, handleShowCount, ed
           'Content-Type': 'multipart/form-data'
         }
       })
-        .then(result => {
-          console.log(result);
-        })
         .catch(error => {
-          console.log(error)
+          console.error(error)
         })
     }
 
@@ -206,7 +203,7 @@ export default function DrawAddOrEditShow({ handleExitClick, handleShowCount, ed
         setExitForm(true);
       })
       .catch(error => {
-        console.log(error);
+        console.error(error);
       })
 
     if (typeof changedPicture !== 'string' || (typeof changedPicture === 'string' && picture.trim() !== changedPicture.trim() && changedPicture != "")) {
@@ -220,11 +217,8 @@ export default function DrawAddOrEditShow({ handleExitClick, handleShowCount, ed
           'Content-Type': 'multipart/form-data'
         }
       })
-        .then(result => {
-          console.log(result.data)
-        })
         .catch(error => {
-          console.log(error)
+          console.error(error)
         })
     }
 
@@ -245,7 +239,6 @@ export default function DrawAddOrEditShow({ handleExitClick, handleShowCount, ed
       }
     })
       .then(result => {
-        console.log("Show deleted successfully:", result.data);
         window.location.reload();
       })
       .catch(error => {

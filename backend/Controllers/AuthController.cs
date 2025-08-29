@@ -40,8 +40,6 @@ public class AuthController : ControllerBase
         var user = await _userService.GetUserAsync(request.Username);
         var checkEmail = await AuthService.CheckEmail(request.Email);
 
-        Console.WriteLine("checkEmail result:" + checkEmail);
-
         if (user == null && checkEmail == 0)
         {
             var newUser = new User
@@ -56,7 +54,6 @@ public class AuthController : ControllerBase
             var result = await _userService.CreateUserAsync(newUser);
             if (result != null)
             {
-               // var token = AuthService.GenerateJwtToken(_configuration, newUser);  //token nam treba samo ako cemo odmah i login
                 return Ok(new { Message = "Korisnik je uspešno kreiran.",/* Token = token */});
             }
             return BadRequest("Došlo je do greške pri kreiranju korisnika");
@@ -69,7 +66,7 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> CheckEmail(string email){
 
         var checkEmail = await AuthService.CheckEmail(email);
-        Console.WriteLine("CheckEmail" + checkEmail.ToString());
+
         if (checkEmail == 0)
             return Ok(checkEmail);
         else //email je u upotrebi
@@ -77,7 +74,7 @@ public class AuthController : ControllerBase
     }
 }
 
-public class LoginRequest //ovo premestiti negde?
+public class LoginRequest
 {
     public required string Email { get; set; }
     public required string Password { get; set; }
